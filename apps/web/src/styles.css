@@ -1,0 +1,363 @@
+/* You can add global styles to this file, and also import other style files */
+
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
+
+@theme {
+  --color-background: oklch(100% 0 0);
+  --color-foreground: oklch(14.08% 0.004 285.82);
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(14.08% 0.004 285.82);
+  --color-popover: oklch(100% 0 0);
+  --color-popover-foreground: oklch(14.08% 0.004 285.82);
+  --color-primary: oklch(20.47% 0.006 285.88);
+  --color-primary-foreground: oklch(98.51% 0 0);
+  --color-secondary: oklch(96.76% 0.001 286.38);
+  --color-secondary-foreground: oklch(20.47% 0.006 285.88);
+  --color-muted: oklch(96.76% 0.001 286.38);
+  --color-muted-foreground: oklch(55.19% 0.014 285.94);
+  --color-accent: oklch(96.76% 0.001 286.38);
+  --color-accent-foreground: oklch(20.47% 0.006 285.88);
+  --color-destructive: oklch(57.71% 0.215 27.33);
+  --color-destructive-foreground: oklch(100% 0 0);
+  --color-border: oklch(91.97% 0.004 286.32);
+  --color-input: oklch(91.97% 0.004 286.32);
+  --color-ring: oklch(70.9% 0.061 261.3);
+  --color-sidebar: oklch(98.51% 0 0);
+  --color-sidebar-foreground: oklch(14.08% 0.004 285.82);
+  --color-sidebar-primary: oklch(20.47% 0.006 285.88);
+  --color-sidebar-primary-foreground: oklch(98.51% 0 0);
+  --color-sidebar-accent: oklch(96.76% 0.001 286.38);
+  --color-sidebar-accent-foreground: oklch(20.47% 0.006 285.88);
+  --color-sidebar-border: oklch(91.97% 0.004 286.32);
+  --color-sidebar-ring: oklch(70.9% 0.061 261.3);
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+}
+/* TipTap Editor Styles */
+.tiptap-wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+.tiptap-editor {
+  height: 100%;
+  width: 100%;
+}
+
+.tiptap {
+  height: 100%;
+  width: 100%;
+  outline: none;
+  padding: 2rem 3rem;
+  color: var(--color-foreground);
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: var(--color-muted-foreground);
+  pointer-events: none;
+  float: left;
+  height: 0;
+  content: attr(data-placeholder);
+}
+
+.tiptap h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  margin-top: 1.5rem;
+}
+
+.tiptap h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.tiptap h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+}
+
+.tiptap p {
+  margin-bottom: 0.5rem;
+  line-height: 1.625;
+}
+
+.tiptap ul,
+.tiptap ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tiptap ul {
+  list-style-type: disc;
+}
+
+.tiptap ol {
+  list-style-type: decimal;
+}
+
+.tiptap li {
+  margin-bottom: 0.25rem;
+}
+
+.tiptap blockquote {
+  border-left: 4px solid color-mix(in oklch, var(--color-primary) 30%, transparent);
+  padding-left: 1rem;
+  font-style: italic;
+  margin: 1rem 0;
+  color: var(--color-muted-foreground);
+}
+
+.tiptap code {
+  background-color: var(--color-muted);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: ui-monospace, monospace;
+}
+
+.tiptap pre {
+  background-color: var(--color-muted);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.tiptap pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.tiptap mark {
+  background-color: oklch(85% 0.15 85);
+}
+
+.dark .tiptap mark {
+  background-color: oklch(45% 0.12 85);
+}
+
+.tiptap a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tiptap hr {
+  margin: 1.5rem 0;
+  border-color: var(--color-border);
+}
+
+.tiptap ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.tiptap ul[data-type='taskList'] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.tiptap ul[data-type='taskList'] li label {
+  display: flex;
+  align-items: center;
+}
+
+.tiptap ul[data-type='taskList'] li input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border-color: var(--color-border);
+}
+
+.tiptap ul[data-type='taskList'] li[data-checked='true'] > div > p {
+  text-decoration: line-through;
+  color: var(--color-muted-foreground);
+}
+
+/* TipTap Table Styles */
+.tiptap table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 1rem 0;
+  overflow: hidden;
+}
+
+.tiptap table td,
+.tiptap table th {
+  min-width: 1em;
+  border: 2px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.tiptap table th {
+  font-weight: 600;
+  text-align: left;
+  background-color: var(--color-muted);
+}
+
+.tiptap table .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: '';
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--color-accent);
+  pointer-events: none;
+  opacity: 0.2;
+}
+
+.tiptap table .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: var(--color-primary);
+  pointer-events: none;
+}
+
+.tiptap table p {
+  margin: 0;
+}
+
+/* TipTap Image Styles */
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.tiptap img.ProseMirror-selectednode {
+  outline: 3px solid var(--color-primary);
+}
+
+/* TipTap Code Block with Syntax Highlighting */
+.tiptap pre {
+  background: var(--color-muted);
+  color: var(--color-foreground);
+  font-family: 'JetBrainsMono', 'Courier New', monospace;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.tiptap pre code {
+  background: none;
+  color: inherit;
+  font-size: 0.875rem;
+  padding: 0;
+}
+
+.tiptap pre .hljs-comment,
+.tiptap pre .hljs-quote {
+  color: #999;
+}
+
+.tiptap pre .hljs-keyword,
+.tiptap pre .hljs-selector-tag,
+.tiptap pre .hljs-addition {
+  color: #c678dd;
+}
+
+.tiptap pre .hljs-number,
+.tiptap pre .hljs-string,
+.tiptap pre .hljs-meta .hljs-string,
+.tiptap pre .hljs-literal,
+.tiptap pre .hljs-doctag,
+.tiptap pre .hljs-regexp {
+  color: #98c379;
+}
+
+.tiptap pre .hljs-title,
+.tiptap pre .hljs-section,
+.tiptap pre .hljs-name,
+.tiptap pre .hljs-selector-id,
+.tiptap pre .hljs-selector-class {
+  color: #e06c75;
+}
+
+.tiptap pre .hljs-attribute,
+.tiptap pre .hljs-attr,
+.tiptap pre .hljs-variable,
+.tiptap pre .hljs-template-variable,
+.tiptap pre .hljs-class .hljs-title,
+.tiptap pre .hljs-type {
+  color: #d19a66;
+}
+
+.tiptap pre .hljs-symbol,
+.tiptap pre .hljs-bullet,
+.tiptap pre .hljs-subst,
+.tiptap pre .hljs-meta,
+.tiptap pre .hljs-meta .hljs-keyword,
+.tiptap pre .hljs-selector-attr,
+.tiptap pre .hljs-selector-pseudo,
+.tiptap pre .hljs-link {
+  color: #61aeee;
+}
+
+.tiptap pre .hljs-built_in,
+.tiptap pre .hljs-deletion {
+  color: #e06c75;
+}
+
+/* TipTap Editor Container */
+.tiptap-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tiptap-editor {
+  padding: 2rem;
+  min-height: 100%;
+}
+
+.dark {
+  --color-background: oklch(14.08% 0.004 285.82);
+  --color-foreground: oklch(98.51% 0 0);
+  --color-card: oklch(14.08% 0.004 285.82);
+  --color-card-foreground: oklch(98.51% 0 0);
+  --color-popover: oklch(14.08% 0.004 285.82);
+  --color-popover-foreground: oklch(98.51% 0 0);
+  --color-primary: oklch(98.51% 0 0);
+  --color-primary-foreground: oklch(20.47% 0.006 285.88);
+  --color-secondary: oklch(26.98% 0.006 286.03);
+  --color-secondary-foreground: oklch(98.51% 0 0);
+  --color-muted: oklch(26.98% 0.006 286.03);
+  --color-muted-foreground: oklch(70.67% 0.01 286.07);
+  --color-accent: oklch(26.98% 0.006 286.03);
+  --color-accent-foreground: oklch(98.51% 0 0);
+  --color-destructive: oklch(67.12% 0.214 26.09);
+  --color-destructive-foreground: oklch(100% 0 0);
+  --color-border: oklch(26.98% 0.006 286.03);
+  --color-input: oklch(26.98% 0.006 286.03);
+  --color-ring: oklch(83.15% 0.031 227.87);
+  --color-sidebar: oklch(20.47% 0.006 285.88);
+  --color-sidebar-foreground: oklch(98.51% 0 0);
+  --color-sidebar-primary: oklch(83.15% 0.031 227.87);
+  --color-sidebar-primary-foreground: oklch(20.47% 0.006 285.88);
+  --color-sidebar-accent: oklch(26.98% 0.006 286.03);
+  --color-sidebar-accent-foreground: oklch(98.51% 0 0);
+  --color-sidebar-border: oklch(26.98% 0.006 286.03);
+  --color-sidebar-ring: oklch(83.15% 0.031 227.87);
+}
