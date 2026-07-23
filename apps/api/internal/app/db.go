@@ -1,4 +1,4 @@
-package db
+package app
 
 import (
 	"context"
@@ -6,11 +6,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func CreatePostgres(ctx context.Context, url string) (*pgxpool.Pool, error) {
+func createPostgres(ctx context.Context, url string) (*pgxpool.Pool, error) {
 	return pgxpool.New(ctx, url)
 }
 
-func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
+func migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	if _, err := pool.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS users (
 			id         TEXT PRIMARY KEY,

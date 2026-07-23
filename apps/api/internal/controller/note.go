@@ -3,62 +3,63 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
-	"notes-collab-api/internal/domain"
-	"notes-collab-api/internal/repository"
+	"notes-collab-api/internal/dto"
+	"notes-collab-api/internal/usecase"
 	"notes-collab-api/internal/utils"
 	"strings"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 type NoteController struct {
-	repo *repository.NoteRepo
+	note *usecase.Note
 }
 
-func NewNoteController(repo *repository.NoteRepo) *NoteController {
-	return &NoteController{repo: repo}
+func NewNoteController(note *usecase.Note) *NoteController {
+	return &NoteController{note: note}
 }
 
 func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
 	userID, ok := utils.UserIDFromContext(r.Context())
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		unauthorized(w)
 		return
 	}
 
-	var b struct {
+	var body struct {
 		Title       string `json:"title"`
 		Content     string `json:"content"`
 		WorkspaceID string `json:"workspaceId"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		badRequest(w, "invalid body")
 		return
 	}
 
-	if strings.TrimSpace(b.WorkspaceID) == "" {
-		http.Error(w, "workspaceId is required", http.StatusBadRequest)
+	if strings.TrimSpace(body.WorkspaceID) == "" {
+		badRequest(w, "workspaceId is required")
 		return
 	}
 
-	now := time.Now().UTC()
-
-	note := domain.Note{
-		ID:          uuid.NewString(),
-		WorkspaceID: b.WorkspaceID,
-		Title:       b.Title,
-		Content:     b.Content,
+	note, err := c.note.Create(r.Context(), dto.CreateNoteInput{
+		WorkspaceID: body.WorkspaceID,
+		Title:       body.Title,
+		Content:     body.Content,
 		AuthorID:    userID,
-		CreatedAt:   now,
-		UpdatedAt:   now,
-	}
-
-	if err := c.repo.Create(r.Context(), note); err != nil {
-		http.Error(w, "internal error", http.StatusInternalServerError)
+	})
+	if err != nil {
+		domainError(w, err)
 		return
 	}
 
 	writeJSON(w, http.StatusCreated, note)
+}
+
+func (c *NoteController) GetByWorkspaceID(w http.ResponseWriter, r *http.Request) {
+	notes, err := c.note.GetByWorkspaceID(r.Context(), r.PathValue("workspaceId"))
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, notes)
 }

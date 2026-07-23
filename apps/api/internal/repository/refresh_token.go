@@ -10,13 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type RefreshToken struct {
-	Token     string
-	UserID    string
-	ExpiresAt time.Time
-	CreatedAt time.Time
-}
-
 type RefreshTokenRepo struct {
 	db *pgxpool.Pool
 }
@@ -25,7 +18,7 @@ func NewRefreshTokenRepo(db *pgxpool.Pool) *RefreshTokenRepo {
 	return &RefreshTokenRepo{db: db}
 }
 
-func (r *RefreshTokenRepo) Save(ctx context.Context, t RefreshToken) error {
+func (r *RefreshTokenRepo) Save(ctx context.Context, t domain.RefreshToken) error {
 	_, err := r.db.Exec(ctx, `
         INSERT INTO refresh_tokens (token, user_id, expires_at, created_at)
         VALUES ($1, $2, $3, $4)
@@ -38,7 +31,7 @@ func (r *RefreshTokenRepo) Save(ctx context.Context, t RefreshToken) error {
 	return err
 }
 
-func (r *RefreshTokenRepo) Rotate(ctx context.Context, oldToken, newToken string, expiresAt time.Time) (string, error) {
+func (r *RefreshTokenRepo) Refresh(ctx context.Context, oldToken, newToken string, expiresAt time.Time) (string, error) {
 	var userID string
 
 	err := r.db.QueryRow(ctx, `

@@ -3,7 +3,7 @@ package domain
 import "errors"
 
 var (
-	ErrNoteByWorkspaceNotFound = errors.New("Not found such note by workspace id")
+	ErrNoteByWorkspaceNotFound = errors.New("not found such note by workspace id")
 
 	ErrUserNotFound       = errors.New("user not found")
 	ErrEmailTaken         = errors.New("email already taken")

@@ -1,4 +1,4 @@
-package config
+package app
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type Config struct {
+type config struct {
 	Port          string
 	DatabaseURL   string
 	JWTSecret     string
@@ -16,7 +16,7 @@ type Config struct {
 	RefreshExpire time.Duration
 }
 
-func Load() (*Config, error) {
+func loadConfig() (*config, error) {
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
 		return nil, errors.New("DATABASE_URL is required")
@@ -27,7 +27,7 @@ func Load() (*Config, error) {
 		return nil, errors.New("JWT_SECRET is required")
 	}
 
-	return &Config{
+	return &config{
 		Port:          envOr("PORT", "8080"),
 		DatabaseURL:   databaseURL,
 		JWTSecret:     jwtSecret,

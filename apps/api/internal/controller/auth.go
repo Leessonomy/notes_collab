@@ -6,34 +6,24 @@ import (
 	"net/http"
 	"net/mail"
 	"notes-collab-api/internal/domain"
-	"notes-collab-api/internal/repository"
+	"notes-collab-api/internal/dto"
+	"notes-collab-api/internal/usecase"
 	"notes-collab-api/internal/utils"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 const minPasswordLength = 8
 
 type AuthController struct {
-	userRepo         *repository.UserRepo
-	refreshTokenRepo *repository.RefreshTokenRepo
-	jwt              *utils.Token
-	secureCookies    bool
+	auth          *usecase.Auth
+	secureCookies bool
 }
 
-func NewAuthController(
-	user *repository.UserRepo,
-	refreshToken *repository.RefreshTokenRepo,
-	jwt *utils.Token,
-	secureCookies bool,
-) *AuthController {
+func NewAuthController(auth *usecase.Auth, secureCookies bool) *AuthController {
 	return &AuthController{
-		userRepo:         user,
-		refreshTokenRepo: refreshToken,
-		jwt:              jwt,
-		secureCookies:    secureCookies,
+		auth:          auth,
+		secureCookies: secureCookies,
 	}
 }
 
@@ -56,118 +46,64 @@ func (req SignUpBody) validate() error {
 	return nil
 }
 
-func (c *AuthController) createSession(w http.ResponseWriter, r *http.Request, userID string) error {
-	access, err := c.jwt.GenerateAccessToken(userID)
-	if err != nil {
-		return err
-	}
-
-	refresh, err := c.jwt.GenerateRefreshToken()
-	if err != nil {
-		return err
-	}
-
-	now := time.Now().UTC()
-	accessExpiresAt := now.Add(c.jwt.AccessExpire())
-	refreshExpiresAt := now.Add(c.jwt.RefreshExpire())
-
-	err = c.refreshTokenRepo.Save(r.Context(), repository.RefreshToken{
-		Token:     refresh,
-		UserID:    userID,
-		ExpiresAt: refreshExpiresAt,
-		CreatedAt: now,
-	})
-	if err != nil {
-		return err
-	}
-
-	c.setSecureCookie(w, utils.AccessCookieName, access, accessExpiresAt)
-	c.setSecureCookie(w, utils.RefreshCookieName, refresh, refreshExpiresAt)
-
-	return nil
+func (c *AuthController) setSession(w http.ResponseWriter, session dto.SessionOutput) {
+	c.setSecureCookie(w, utils.AccessCookieName, session.AccessToken, session.AccessExpiresAt)
+	c.setSecureCookie(w, utils.RefreshCookieName, session.RefreshToken, session.RefreshExpiresAt)
 }
 
 func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
-	var b SignUpBody
-	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+	var body SignUpBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		badRequest(w, "invalid body")
 		return
 	}
-	b.Email = strings.ToLower(strings.TrimSpace(b.Email))
+	body.Email = strings.ToLower(strings.TrimSpace(body.Email))
 
-	if err := b.validate(); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	_, err := c.userRepo.GetByEmail(r.Context(), b.Email)
-	if err == nil {
-		http.Error(w, domain.ErrEmailTaken.Error(), http.StatusConflict)
-		return
-	}
-	if !errors.Is(err, domain.ErrUserNotFound) {
-		internalError(w, err)
+	if err := body.validate(); err != nil {
+		badRequest(w, err.Error())
 		return
 	}
 
-	hash, err := utils.HashPassword(b.Password)
+	session, err := c.auth.SignUp(r.Context(), dto.SignUpInput{
+		Name:     body.Name,
+		Email:    body.Email,
+		Password: body.Password,
+	})
 	if err != nil {
-		internalError(w, err)
+		domainError(w, err)
 		return
 	}
 
-	user := domain.User{
-		ID:        uuid.NewString(),
-		Name:      b.Name,
-		Email:     b.Email,
-		Password:  hash,
-		CreatedAt: time.Now().UTC(),
-	}
+	c.setSession(w, session)
 
-	if err := c.userRepo.Create(r.Context(), user); err != nil {
-		internalError(w, err)
-		return
-	}
-
-	if err := c.createSession(w, r, user.ID); err != nil {
-		internalError(w, err)
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, user)
+	writeJSON(w, http.StatusCreated, session.User)
 }
 
 func (c *AuthController) LogIn(w http.ResponseWriter, r *http.Request) {
-	var b struct {
+	var body struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		badRequest(w, "invalid body")
 		return
 	}
 
-	b.Email = strings.ToLower(strings.TrimSpace(b.Email))
+	body.Email = strings.ToLower(strings.TrimSpace(body.Email))
 
-	user, err := c.userRepo.GetByEmail(r.Context(), b.Email)
-
+	session, err := c.auth.LogIn(r.Context(), dto.LogInInput{
+		Email:    body.Email,
+		Password: body.Password,
+	})
 	if err != nil {
-		http.Error(w, domain.ErrInvalidCredentials.Error(), http.StatusUnauthorized)
+		domainError(w, err)
 		return
 	}
 
-	if !utils.CheckPassword(user.Password, b.Password) {
-		http.Error(w, domain.ErrInvalidCredentials.Error(), http.StatusUnauthorized)
-		return
-	}
+	c.setSession(w, session)
 
-	if err := c.createSession(w, r, user.ID); err != nil {
-		internalError(w, err)
-		return
-	}
-
-	writeJSON(w, http.StatusOK, user)
+	writeJSON(w, http.StatusOK, session.User)
 }
 
 func (c *AuthController) Refresh(w http.ResponseWriter, r *http.Request) {
@@ -177,42 +113,24 @@ func (c *AuthController) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newRefresh, err := c.jwt.GenerateRefreshToken()
-	if err != nil {
-		internalError(w, err)
-		return
-	}
-
-	now := time.Now().UTC()
-	refreshExpiresAt := now.Add(c.jwt.RefreshExpire())
-
-	userID, err := c.refreshTokenRepo.Rotate(r.Context(), cookie.Value, newRefresh, refreshExpiresAt)
+	session, err := c.auth.Refresh(r.Context(), cookie.Value)
 	if err != nil {
 		if errors.Is(err, domain.ErrTokenNotFound) {
 			c.clearCookies(w, utils.AccessCookieName)
 			c.clearCookies(w, utils.RefreshCookieName)
-			unauthorized(w)
-			return
 		}
-		internalError(w, err)
+		domainError(w, err)
 		return
 	}
 
-	access, err := c.jwt.GenerateAccessToken(userID)
-	if err != nil {
-		internalError(w, err)
-		return
-	}
-
-	c.setSecureCookie(w, utils.AccessCookieName, access, now.Add(c.jwt.AccessExpire()))
-	c.setSecureCookie(w, utils.RefreshCookieName, newRefresh, refreshExpiresAt)
+	c.setSession(w, session)
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
 func (c *AuthController) LogOut(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie(utils.RefreshCookieName); err == nil {
-		c.refreshTokenRepo.Delete(r.Context(), cookie.Value)
+		c.auth.LogOut(r.Context(), cookie.Value)
 	}
 
 	c.clearCookies(w, utils.AccessCookieName)

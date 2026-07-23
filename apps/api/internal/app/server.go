@@ -1,26 +1,17 @@
-package server
+package app
 
 import (
-	"context"
 	"net/http"
-	"notes-collab-api/internal/config"
 	"notes-collab-api/internal/controller"
-	"notes-collab-api/internal/db"
 	"notes-collab-api/internal/middleware"
 	"notes-collab-api/internal/repository"
+	"notes-collab-api/internal/usecase"
 	"notes-collab-api/internal/utils"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func New(ctx context.Context, cfg *config.Config) (http.Handler, error) {
-	pool, err := db.CreatePostgres(ctx, cfg.DatabaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Migrate(ctx, pool); err != nil {
-		return nil, err
-	}
-
+func createHandler(cfg *config, pool *pgxpool.Pool) http.Handler {
 	jwt := utils.NewJWT(cfg.JWTSecret, cfg.AccessExpire, cfg.RefreshExpire)
 
 	userRepo := repository.NewUserRepo(pool)
@@ -28,12 +19,17 @@ func New(ctx context.Context, cfg *config.Config) (http.Handler, error) {
 	workspaceRepo := repository.NewWorkspaceRepo(pool)
 	noteRepo := repository.NewNoteRepo(pool)
 
-	authCtrl := controller.NewAuthController(userRepo, refreshRepo, jwt, cfg.CookieSecure)
-	workspaceCtrl := controller.NewWorkspaceController(workspaceRepo)
-	noteCtrl := controller.NewNoteController(noteRepo)
+	authUC := usecase.NewAuth(userRepo, refreshRepo, jwt)
+	workspaceUC := usecase.NewWorkspace(workspaceRepo)
+	noteUC := usecase.NewNote(noteRepo)
 
-	requireAuth := middleware.RequireAuth(jwt)
-	protected := func(h http.HandlerFunc) http.Handler { return requireAuth(h) }
+	authCtrl := controller.NewAuthController(authUC, cfg.CookieSecure)
+	workspaceCtrl := controller.NewWorkspaceController(workspaceUC)
+	noteCtrl := controller.NewNoteController(noteUC)
+
+	protectedAuth := func(h http.HandlerFunc) http.Handler {
+		return middleware.RequireAuth(jwt)(h)
+	}
 
 	mux := http.NewServeMux()
 
@@ -44,18 +40,14 @@ func New(ctx context.Context, cfg *config.Config) (http.Handler, error) {
 	mux.HandleFunc("POST /api/auth/refresh", authCtrl.Refresh)
 	mux.HandleFunc("POST /api/auth/logout", authCtrl.LogOut)
 
-	mux.Handle("POST /api/notes", protected(noteCtrl.Create))
+	mux.Handle("POST /api/notes", protectedAuth(noteCtrl.Create))
 
-	mux.Handle("GET /api/workspaces", protected(workspaceCtrl.GetAll))
-	mux.Handle("POST /api/workspaces", protected(workspaceCtrl.Create))
-	mux.Handle("GET /api/workspaces/{workspaceId}/notes", protected(noteCtrl.GetByWorkspaceID))
+	mux.Handle("GET /api/workspaces", protectedAuth(workspaceCtrl.GetAll))
+	mux.Handle("POST /api/workspaces", protectedAuth(workspaceCtrl.Create))
+	mux.Handle("GET /api/workspaces/{workspaceId}/notes", protectedAuth(noteCtrl.GetByWorkspaceID))
 
-	return withCORS(cfg.CORSOrigin, mux), nil
-}
-
-func withCORS(origin string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Origin", cfg.CORSOrigin)
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
@@ -66,6 +58,6 @@ func withCORS(origin string, next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		mux.ServeHTTP(w, r)
 	})
 }

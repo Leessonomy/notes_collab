@@ -62,7 +62,7 @@ func scanNotes(rows pgx.Rows) ([]domain.Note, error) {
 	return data, nil
 }
 
-func (r *NoteRepo) Get(ctx context.Context) ([]domain.Note, error) {
+func (r *NoteRepo) GetAll(ctx context.Context) ([]domain.Note, error) {
 	rows, err := r.db.Query(ctx, `SELECT id, workspace_id, title, content, author_id, created_at, updated_at FROM notes`)
 	if err != nil {
 		return nil, err

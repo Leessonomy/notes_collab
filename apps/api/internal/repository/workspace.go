@@ -31,7 +31,7 @@ func (r *WorkspaceRepo) Create(ctx context.Context, w domain.Workspace) error {
 	return err
 }
 
-func (r *WorkspaceRepo) Get(ctx context.Context) ([]domain.Workspace, error) {
+func (r *WorkspaceRepo) GetAll(ctx context.Context) ([]domain.Workspace, error) {
 
 	var data []domain.Workspace
 
