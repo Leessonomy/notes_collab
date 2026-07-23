@@ -3,7 +3,7 @@ export interface Note {
   workspaceId: string;
   title: string;
   content: string;
-  authorId: string;
+  ownerId: string;
   createdAt: Date;
   updatedAt: Date;
 }

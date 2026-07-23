@@ -31,35 +31,34 @@ func (r *WorkspaceRepo) Create(ctx context.Context, w domain.Workspace) error {
 	return err
 }
 
-func (r *WorkspaceRepo) GetAll(ctx context.Context) ([]domain.Workspace, error) {
-
-	var data []domain.Workspace
-
+func (r *WorkspaceRepo) GetByOwner(ctx context.Context, ownerID string) ([]domain.Workspace, error) {
 	rows, err := r.db.Query(ctx, `
-    SELECT *
-    FROM workspaces
- `)
+        SELECT id, name, owner_id, created_at, updated_at
+        FROM workspaces
+        WHERE owner_id = $1
+    `, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
+	data := make([]domain.Workspace, 0)
 	for rows.Next() {
 		var w domain.Workspace
-
-		err := rows.Scan(
+		if err := rows.Scan(
 			&w.ID,
 			&w.Name,
 			&w.OwnerID,
 			&w.CreatedAt,
 			&w.UpdatedAt,
-		)
-
-		if err != nil {
-			return []domain.Workspace{}, err
+		); err != nil {
+			return nil, err
 		}
-
 		data = append(data, w)
 	}
 
-	if err != nil {
-		return []domain.Workspace{}, err
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return data, nil

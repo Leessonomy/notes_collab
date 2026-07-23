@@ -11,7 +11,7 @@ import (
 
 type WorkspaceStorage interface {
 	Create(ctx context.Context, w domain.Workspace) error
-	GetAll(ctx context.Context) ([]domain.Workspace, error)
+	GetByOwner(ctx context.Context, ownerID string) ([]domain.Workspace, error)
 }
 
 type Workspace struct {
@@ -40,6 +40,6 @@ func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) 
 	return workspace, nil
 }
 
-func (w *Workspace) GetAll(ctx context.Context) ([]domain.Workspace, error) {
-	return w.workspaces.GetAll(ctx)
+func (w *Workspace) Get(ctx context.Context, ownerID string) ([]domain.Workspace, error) {
+	return w.workspaces.GetByOwner(ctx, ownerID)
 }

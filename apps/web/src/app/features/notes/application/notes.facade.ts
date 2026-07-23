@@ -4,14 +4,12 @@ import { catchError, debounceTime, EMPTY, Subject, switchMap } from 'rxjs';
 import { NotesStore } from './notes.store';
 import { NotesApiService } from '../api/notes-api.service';
 import { NoteTabsService } from './note-tabs.service';
-import { AuthService } from '../../../core/auth/auth.service';
 
 @Injectable()
 export class NotesFacade {
   private readonly store = inject(NotesStore);
   private readonly api = inject(NotesApiService);
   private readonly tabs = inject(NoteTabsService);
-  private readonly auth = inject(AuthService);
 
   readonly notes = this.store.notes;
   readonly isLoading = this.store.isLoading;
@@ -38,7 +36,7 @@ export class NotesFacade {
 
   loadForWorkspace(workspaceId: string) {
     this.store.setLoading(true);
-    this.api.getByWorkspace(workspaceId).subscribe({
+    this.api.get().subscribe({
       next: (notes) => {
         this.store.setNotes(workspaceId, notes);
         this.store.setError(null);
@@ -57,7 +55,6 @@ export class NotesFacade {
         workspaceId,
         title: 'Untitled',
         content: '',
-        authorId: this.auth.getCurrentUserId(),
       })
       .subscribe({
         next: (note) => {

@@ -7,7 +7,7 @@ type Note struct {
 	WorkspaceID string    `json:"workspaceId"`
 	Title       string    `json:"title"`
 	Content     string    `json:"content"`
-	AuthorID    string    `json:"authorId"`
+	OwnerID     string    `json:"ownerId"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }

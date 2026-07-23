@@ -6,11 +6,11 @@ import { Note } from '../domain/note.model';
 export class NotesApiService {
   private readonly http = inject(HttpClient);
 
-  getByWorkspace(workspaceId: string) {
-    return this.http.get<Note[]>(`/api/workspaces/${workspaceId}/notes`);
+  get() {
+    return this.http.get<Note[]>('/api/notes');
   }
 
-  create(payload: { workspaceId: string; title: string; content: string; authorId: string }) {
+  create(payload: { workspaceId: string; title: string; content: string }) {
     return this.http.post<Note>('/api/notes', payload);
   }
 

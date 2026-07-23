@@ -11,7 +11,7 @@ import (
 
 type NoteStorage interface {
 	Create(ctx context.Context, n domain.Note) error
-	GetByWorkspaceID(ctx context.Context, workspaceID string) ([]domain.Note, error)
+	GetByOwner(ctx context.Context, ownerID string) ([]domain.Note, error)
 }
 
 type Note struct {
@@ -30,7 +30,7 @@ func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.No
 		WorkspaceID: input.WorkspaceID,
 		Title:       input.Title,
 		Content:     input.Content,
-		AuthorID:    input.AuthorID,
+		OwnerID:     input.OwnerID,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -42,6 +42,6 @@ func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.No
 	return note, nil
 }
 
-func (n *Note) GetByWorkspaceID(ctx context.Context, workspaceID string) ([]domain.Note, error) {
-	return n.notes.GetByWorkspaceID(ctx, workspaceID)
+func (n *Note) Get(ctx context.Context, ownerID string) ([]domain.Note, error) {
+	return n.notes.GetByOwner(ctx, ownerID)
 }

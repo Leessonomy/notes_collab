@@ -40,11 +40,11 @@ func createHandler(cfg *config, pool *pgxpool.Pool) http.Handler {
 	mux.HandleFunc("POST /api/auth/refresh", authCtrl.Refresh)
 	mux.HandleFunc("POST /api/auth/logout", authCtrl.LogOut)
 
+	mux.Handle("GET /api/notes", protectedAuth(noteCtrl.Get))
 	mux.Handle("POST /api/notes", protectedAuth(noteCtrl.Create))
 
-	mux.Handle("GET /api/workspaces", protectedAuth(workspaceCtrl.GetAll))
+	mux.Handle("GET /api/workspaces", protectedAuth(workspaceCtrl.Get))
 	mux.Handle("POST /api/workspaces", protectedAuth(workspaceCtrl.Create))
-	mux.Handle("GET /api/workspaces/{workspaceId}/notes", protectedAuth(noteCtrl.GetByWorkspaceID))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", cfg.CORSOrigin)

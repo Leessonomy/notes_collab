@@ -18,11 +18,7 @@ func NewNoteController(note *usecase.Note) *NoteController {
 }
 
 func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
-	userID, ok := utils.UserIDFromContext(r.Context())
-	if !ok {
-		unauthorized(w)
-		return
-	}
+	userID := utils.UserIDFromContext(r.Context())
 
 	var body struct {
 		Title       string `json:"title"`
@@ -44,7 +40,7 @@ func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
 		WorkspaceID: body.WorkspaceID,
 		Title:       body.Title,
 		Content:     body.Content,
-		AuthorID:    userID,
+		OwnerID:     userID,
 	})
 	if err != nil {
 		domainError(w, err)
@@ -54,8 +50,10 @@ func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, note)
 }
 
-func (c *NoteController) GetByWorkspaceID(w http.ResponseWriter, r *http.Request) {
-	notes, err := c.note.GetByWorkspaceID(r.Context(), r.PathValue("workspaceId"))
+func (c *NoteController) Get(w http.ResponseWriter, r *http.Request) {
+	userID := utils.UserIDFromContext(r.Context())
+
+	notes, err := c.note.Get(r.Context(), userID)
 	if err != nil {
 		domainError(w, err)
 		return

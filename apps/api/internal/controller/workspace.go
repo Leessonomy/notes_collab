@@ -16,8 +16,10 @@ func NewWorkspaceController(workspace *usecase.Workspace) *WorkspaceController {
 	return &WorkspaceController{workspace: workspace}
 }
 
-func (c *WorkspaceController) GetAll(w http.ResponseWriter, r *http.Request) {
-	data, err := c.workspace.GetAll(r.Context())
+func (c *WorkspaceController) Get(w http.ResponseWriter, r *http.Request) {
+	userID := utils.UserIDFromContext(r.Context())
+
+	data, err := c.workspace.Get(r.Context(), userID)
 	if err != nil {
 		domainError(w, err)
 		return
@@ -27,11 +29,7 @@ func (c *WorkspaceController) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *WorkspaceController) Create(w http.ResponseWriter, r *http.Request) {
-	userID, ok := utils.UserIDFromContext(r.Context())
-	if !ok {
-		unauthorized(w)
-		return
-	}
+	userID := utils.UserIDFromContext(r.Context())
 
 	var body struct {
 		Name string `json:"name"`

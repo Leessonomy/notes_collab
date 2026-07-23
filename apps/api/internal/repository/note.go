@@ -19,7 +19,7 @@ func NewNoteRepo(db *pgxpool.Pool) *NoteRepo {
 func (r *NoteRepo) Create(ctx context.Context, n domain.Note) error {
 	_, err := r.db.Exec(ctx, `
         INSERT INTO notes (
-            id, workspace_id, title, content, author_id, created_at, updated_at
+            id, workspace_id, title, content, owner_id, created_at, updated_at
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7)
     `,
@@ -27,7 +27,7 @@ func (r *NoteRepo) Create(ctx context.Context, n domain.Note) error {
 		n.WorkspaceID,
 		n.Title,
 		n.Content,
-		n.AuthorID,
+		n.OwnerID,
 		n.CreatedAt,
 		n.UpdatedAt,
 	)
@@ -46,7 +46,7 @@ func scanNotes(rows pgx.Rows) ([]domain.Note, error) {
 			&n.WorkspaceID,
 			&n.Title,
 			&n.Content,
-			&n.AuthorID,
+			&n.OwnerID,
 			&n.CreatedAt,
 			&n.UpdatedAt,
 		); err != nil {
@@ -62,16 +62,12 @@ func scanNotes(rows pgx.Rows) ([]domain.Note, error) {
 	return data, nil
 }
 
-func (r *NoteRepo) GetAll(ctx context.Context) ([]domain.Note, error) {
-	rows, err := r.db.Query(ctx, `SELECT id, workspace_id, title, content, author_id, created_at, updated_at FROM notes`)
-	if err != nil {
-		return nil, err
-	}
-	return scanNotes(rows)
-}
-
-func (r *NoteRepo) GetByWorkspaceID(ctx context.Context, workspaceID string) ([]domain.Note, error) {
-	rows, err := r.db.Query(ctx, `SELECT id, workspace_id, title, content, author_id, created_at, updated_at FROM notes WHERE workspace_id = $1`, workspaceID)
+func (r *NoteRepo) GetByOwner(ctx context.Context, ownerID string) ([]domain.Note, error) {
+	rows, err := r.db.Query(ctx, `
+        SELECT id, workspace_id, title, content, owner_id, created_at, updated_at
+        FROM notes
+        WHERE owner_id = $1
+    `, ownerID)
 	if err != nil {
 		return nil, err
 	}

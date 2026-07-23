@@ -52,7 +52,7 @@ func migrate(ctx context.Context, pool *pgxpool.Pool) error {
 			workspace_id TEXT NOT NULL,
 			title        TEXT NOT NULL,
 			content      TEXT NOT NULL,
-			author_id    TEXT NOT NULL,
+			owner_id     TEXT NOT NULL,
 			created_at   TIMESTAMPTZ NOT NULL,
 			updated_at   TIMESTAMPTZ NOT NULL
 		)
