@@ -31,13 +31,17 @@ export class AuthService {
   readonly me = computed(() => this.state().me);
   readonly isAuthenticated = computed(() => this.state().me !== null);
 
+  getMe() {
+    return this.http.get<User>('/api/auth/me').pipe(tap((user) => this.state.set({ me: user })));
+  }
+
   login(credentials: LoginCredentials) {
     return this.http
       .post<User>('/api/auth/login', credentials)
       .pipe(tap((user) => this.state.set({ me: user })));
   }
 
-  signUp(credentials: SignUpCredentials) {
+  signup(credentials: SignUpCredentials) {
     return this.http
       .post<User>('/api/auth/signup', credentials)
       .pipe(tap((user) => this.state.set({ me: user })));

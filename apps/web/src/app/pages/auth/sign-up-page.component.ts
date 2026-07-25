@@ -1,6 +1,14 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { customError, email, form, minLength, required, submit, validate } from '@angular/forms/signals';
+import {
+  customError,
+  email,
+  form,
+  minLength,
+  required,
+  submit,
+  validate,
+} from '@angular/forms/signals';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { AuthService } from '../../core/auth/auth.service';
@@ -84,7 +92,7 @@ export class SignUpPageComponent {
     submit(this.form, async (field) => {
       const { email, password, name } = this.model();
       try {
-        this.auth.signUp({ email, password, name }).subscribe((user) => {
+        this.auth.signup({ email, password, name }).subscribe((user) => {
           this.router.navigateByUrl('/app');
         });
         return;

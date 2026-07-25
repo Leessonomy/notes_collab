@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { WorkspaceFacade } from '../../features/workspace';
 import { NotesFacade, NoteGridComponent, Note } from '../../features/notes';
-import { ContentLayoutComponent } from '../../shared/ui/content-layout/content-layout.component';
+import { ContentLayoutComponent } from '../../layout/content-layout.component';
 
 @Component({
   selector: 'app-workspace-page',
