@@ -13,6 +13,7 @@ import (
 
 type UserStorage interface {
 	Create(ctx context.Context, u domain.User) error
+	GetByID(ctx context.Context, userID string) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
 }
 
@@ -41,6 +42,10 @@ func NewAuth(users UserStorage, tokens TokenStorage, session Session) *Auth {
 		tokens:  tokens,
 		session: session,
 	}
+}
+
+func (a *Auth) GetUserSession(ctx context.Context, userID string) (*domain.User, error) {
+	return a.users.GetByID(ctx, userID)
 }
 
 func (a *Auth) SignUp(ctx context.Context, input dto.SignUpInput) (dto.SessionOutput, error) {

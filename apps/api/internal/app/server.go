@@ -40,6 +40,8 @@ func createHandler(cfg *config, pool *pgxpool.Pool) http.Handler {
 	mux.HandleFunc("POST /api/auth/refresh", authCtrl.Refresh)
 	mux.HandleFunc("POST /api/auth/logout", authCtrl.LogOut)
 
+	mux.Handle("GET /api/auth/me", protectedAuth(authCtrl.Me))
+
 	mux.Handle("GET /api/notes", protectedAuth(noteCtrl.Get))
 	mux.Handle("POST /api/notes", protectedAuth(noteCtrl.Create))
 

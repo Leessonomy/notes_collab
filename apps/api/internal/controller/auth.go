@@ -51,6 +51,20 @@ func (c *AuthController) setSession(w http.ResponseWriter, session dto.SessionOu
 	c.setSecureCookie(w, utils.RefreshCookieName, session.RefreshToken, session.RefreshExpiresAt)
 }
 
+func (c *AuthController) Me(w http.ResponseWriter, r *http.Request) {
+	_, err := r.Cookie(utils.RefreshCookieName)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	}
+
+	userID := utils.UserIDFromContext(r.Context())
+
+	user, _ := c.auth.GetUserSession(r.Context(), userID)
+
+	writeJSON(w, http.StatusOK, user)
+
+}
+
 func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	var body SignUpBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
