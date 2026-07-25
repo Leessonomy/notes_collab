@@ -33,8 +33,10 @@ import { AuthService } from '../../core/auth/auth.service';
             <div class="grid gap-2">
               <label hlmLabel for="name">Full Name</label>
               <input type="text" id="name" placeholder="John Doe" hlmInput [field]="form.name" />
-              @for (error of form.name().errors(); track error.kind) {
-                <p class="text-destructive text-sm">{{ error.message }}</p>
+              @if (form.name().touched()) {
+                @for (error of form.name().errors(); track error.kind) {
+                  <p class="text-destructive text-sm">{{ error.message }}</p>
+                }
               }
             </div>
 
@@ -47,24 +49,30 @@ import { AuthService } from '../../core/auth/auth.service';
                 hlmInput
                 [field]="form.email"
               />
-              @for (error of form.email().errors(); track error.kind) {
-                <p class="text-destructive text-sm">{{ error.message }}</p>
+              @if (form.email().touched()) {
+                @for (error of form.email().errors(); track error.kind) {
+                  <p class="text-destructive text-sm">{{ error.message }}</p>
+                }
               }
             </div>
 
             <div class="grid gap-2">
               <label hlmLabel for="password">Password</label>
               <input type="password" id="password" hlmInput [field]="form.password" />
-              @for (error of form.password().errors(); track error.kind) {
-                <p class="text-destructive text-sm">{{ error.message }}</p>
+              @if (form.password().touched()) {
+                @for (error of form.password().errors(); track error.kind) {
+                  <p class="text-destructive text-sm">{{ error.message }}</p>
+                }
               }
             </div>
 
             <div class="grid gap-2">
               <label hlmLabel for="confirmPassword">Confirm Password</label>
               <input type="password" id="confirmPassword" hlmInput [field]="form.confirmPassword" />
-              @for (error of form.confirmPassword().errors(); track error.kind) {
-                <p class="text-destructive text-sm">{{ error.message }}</p>
+              @if (form.confirmPassword().touched()) {
+                @for (error of form.confirmPassword().errors(); track error.kind) {
+                  <p class="text-destructive text-sm">{{ error.message }}</p>
+                }
               }
             </div>
           </div>
@@ -113,8 +121,9 @@ export class SignUpPageComponent {
     submit(this.form, async (field) => {
       const { email, password, name } = this.model();
       try {
-        this.auth.signUp({ email, password, name }).subscribe();
-        this.router.navigateByUrl('/app');
+        this.auth.signUp({ email, password, name }).subscribe((user) => {
+          this.router.navigateByUrl('/app');
+        });
         return;
       } catch (e) {
         return customError({
