@@ -33,7 +33,7 @@ func (r *UserRepo) Create(ctx context.Context, u domain.User) error {
 func (r *UserRepo) scanOne(row pgx.Row) (*domain.User, error) {
 	var u domain.User
 
-	err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.CreatedAt)
+	err := row.Scan(&u.ID, &u.Name, &u.Email, &u.Password)
 
 	if err != nil {
 		return nil, domain.ErrUserNotFound
