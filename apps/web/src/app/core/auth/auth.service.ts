@@ -1,20 +1,49 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { catchError, of, tap } from 'rxjs';
 import { User } from './user.model';
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface SignUpCredentials {
+  name: string;
+  email: string;
+  password: string;
+}
+
+interface AuthState {
+  me: User | null;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly currentUser = signal<User>({
-    id: 'user-1',
-    name: 'Current User',
-    email: 'user@example.com',
-    color: '#3b82f6',
+  private readonly http = inject(HttpClient);
+
+  private readonly state = signal<AuthState>({
+    me: null,
   });
 
-  readonly user = this.currentUser.asReadonly();
+  readonly me = computed(() => this.state().me);
+  readonly isAuthenticated = computed(() => this.state().me !== null);
 
-  getCurrentUserId(): string {
-    return this.currentUser().id;
+  login(credentials: LoginCredentials) {
+    return this.http
+      .post<User>('/api/auth/login', credentials)
+      .pipe(tap((user) => this.state.set({ me: user })));
+  }
+
+  signUp(credentials: SignUpCredentials) {
+    return this.http
+      .post<User>('/api/auth/signup', credentials)
+      .pipe(tap((user) => this.state.set({ me: user })));
+  }
+
+  logout() {
+    return this.http.post('/api/auth/logout', {}).pipe(tap(() => this.state.set({ me: null })));
   }
 }

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -6,7 +7,7 @@ import { HlmLabelImports } from '@spartan-ng/helm/label';
 
 @Component({
   selector: 'sign-in-page',
-  imports: [HlmCardImports, HlmLabelImports, HlmInputImports, HlmButtonImports],
+  imports: [RouterLink, HlmCardImports, HlmLabelImports, HlmInputImports, HlmButtonImports],
   host: { class: 'w-full max-w-md' },
   template: `
     <div hlmCard class="w-full max-w-sm">
@@ -15,7 +16,7 @@ import { HlmLabelImports } from '@spartan-ng/helm/label';
         <p hlmCardDescription>Enter your email below to login to your account</p>
 
         <div hlmCardAction>
-          <button hlmBtn variant="link">Sign Up</button>
+          <a hlmBtn variant="link" routerLink="/auth/signup">Sign Up</a>
         </div>
       </div>
 
@@ -47,4 +48,6 @@ import { HlmLabelImports } from '@spartan-ng/helm/label';
     </div>
   `,
 })
-export class SignInPageComponent {}
+export class SignInPageComponent {
+  ngOnInit() {}
+}

@@ -13,23 +13,25 @@ import { OnlineUser } from '../domain/presence.model';
           {{ note()?.title || 'Untitled' }}
         </h2>
         @if (note()) {
-        <span class="text-xs text-muted-foreground hidden sm:inline">
-          Edited {{ formatDate(note()!.updatedAt) }}
-        </span>
+          <span class="text-xs text-muted-foreground hidden sm:inline">
+            Edited {{ formatDate(note()!.updatedAt) }}
+          </span>
         }
       </div>
 
       <div class="flex items-center gap-1">
         @for (user of onlineUsers(); track user.user.id) {
-        <div
-          class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium text-white ring-2 ring-background -ml-1 first:ml-0"
-          [style.backgroundColor]="user.user.color"
-          [title]="user.user.name"
-        >
-          {{ getInitials(user.user.name) }}
-        </div>
-        } @if (onlineUsers().length > 0) {
-        <span class="text-xs text-muted-foreground ml-2"> {{ onlineUsers().length }} online </span>
+          <div
+            class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium text-white ring-2 ring-background -ml-1 first:ml-0"
+            [title]="user.user.name"
+          >
+            {{ getInitials(user.user.name) }}
+          </div>
+        }
+        @if (onlineUsers().length > 0) {
+          <span class="text-xs text-muted-foreground ml-2">
+            {{ onlineUsers().length }} online
+          </span>
         }
       </div>
     </div>

@@ -1,11 +1,24 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout.component';
+import { AuthLayoutComponent } from './layout/auth-layout.component';
 import { WorkspaceStore, WorkspaceFacade } from './features/workspace';
 import { NotesStore, NotesFacade, NoteTabsService, PresenceService } from './features/notes';
+import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
-    path: '',
+    path: 'auth',
+    component: AuthLayoutComponent,
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('./pages/auth/auth.routes').then((m) => m.routes),
+      },
+    ],
+  },
+  {
+    path: 'app',
+    canActivate: [authGuard],
     component: MainLayoutComponent,
     providers: [
       WorkspaceStore,
@@ -23,12 +36,14 @@ export const routes: Routes = [
       },
       {
         path: 'workspace',
-        loadChildren: () => import('./pages/workspace/workspace-page.routes').then((m) => m.routes),
+        loadChildren: () => import('./pages/workspace/workspace.routes').then((m) => m.routes),
       },
       {
         path: 'note',
-        loadChildren: () => import('./pages/note/note-page.routes').then((m) => m.routes),
+        loadChildren: () => import('./pages/note/note.routes').then((m) => m.routes),
       },
     ],
   },
+  { path: '', redirectTo: 'app', pathMatch: 'full' },
+  { path: '**', redirectTo: 'app' },
 ];

@@ -34,7 +34,7 @@ export class WorkspaceFacade {
   }
 
   create(name: string) {
-    return this.api.create({ name, ownerId: this.auth.getCurrentUserId() }).pipe(
+    return this.api.create({ name, ownerId: this.auth.me()!.id }).pipe(
       tap((workspace) => {
         this.store.addNew(workspace);
         this.store.switchActive(workspace);

@@ -6,22 +6,16 @@ export const MOCK_USERS: User[] = [
     id: 'user-1',
     name: 'Alex Johnson',
     email: 'alex@example.com',
-    avatarUrl: undefined,
-    color: '#3b82f6',
   },
   {
     id: 'user-2',
     name: 'Sarah Chen',
     email: 'sarah@example.com',
-    avatarUrl: undefined,
-    color: '#10b981',
   },
   {
     id: 'user-3',
     name: 'Mike Wilson',
     email: 'mike@example.com',
-    avatarUrl: undefined,
-    color: '#f59e0b',
   },
 ];
 
