@@ -3,11 +3,12 @@ import { MainLayoutComponent } from './layout/main-layout.component';
 import { AuthLayoutComponent } from './layout/auth-layout.component';
 import { WorkspaceStore, WorkspaceFacade } from './features/workspace';
 import { NotesStore, NotesFacade, NoteTabsService, PresenceService } from './features/notes';
-import { authGuard } from './core/auth/auth.guard';
+import { authGuard, guestGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'auth',
+    canActivate: [guestGuard],
     component: AuthLayoutComponent,
     children: [
       {

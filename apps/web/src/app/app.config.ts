@@ -1,4 +1,3 @@
-import { tap } from 'rxjs';
 import {
   ApplicationConfig,
   inject,
@@ -6,19 +5,17 @@ import {
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { AuthService } from './core/auth/auth.service';
+import { authInterceptor } from './core/auth/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(),
-    provideAppInitializer(() => {
-      const auth = inject(AuthService);
-      return auth.getMe().pipe(tap(() => console.log('Authenticated')));
-    }),
+    provideHttpClient(withInterceptors([authInterceptor])),
+    provideAppInitializer(() => inject(AuthService).getMe()),
   ],
 };

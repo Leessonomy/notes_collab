@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import {
   customError,
@@ -9,6 +10,7 @@ import {
   submit,
   validate,
 } from '@angular/forms/signals';
+import { firstValueFrom } from 'rxjs';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { AuthService } from '../../core/auth/auth.service';
@@ -49,6 +51,10 @@ import { FormFieldComponent } from '../../shared/ui/form-field/form-field.compon
           </div>
 
           <div hlmCardFooter class="flex-col gap-2 px-0 pt-6">
+            @for (error of form().errors(); track error.kind) {
+              <p class="text-destructive w-full text-sm">{{ error.message }}</p>
+            }
+
             <button hlmBtn type="submit" class="w-full" [disabled]="form().submitting()">
               Create Account
             </button>
@@ -89,18 +95,25 @@ export class SignUpPageComponent {
 
   onSubmit(event: Event) {
     event.preventDefault();
+
     submit(this.form, async (field) => {
-      const { email, password, name } = this.model();
+      const { name, email, password } = this.model();
+
       try {
-        this.auth.signup({ email, password, name }).subscribe((user) => {
-          this.router.navigateByUrl('/app');
-        });
-        return;
-      } catch (e) {
+        await firstValueFrom(this.auth.signup({ name, email, password }));
+        await this.router.navigateByUrl('/app');
+        return undefined;
+      } catch (error) {
+        if (error instanceof HttpErrorResponse && error.status === 409) {
+          return customError({
+            kind: 'server',
+            message: 'This email is already registered.',
+            fieldTree: field.email,
+          });
+        }
         return customError({
           kind: 'server',
-          message: 'This email is already registered.',
-          fieldTree: field.email,
+          message: 'Could not create the account. Please try again.',
         });
       }
     });

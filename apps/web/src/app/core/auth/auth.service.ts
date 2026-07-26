@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, of, tap } from 'rxjs';
+import { catchError, finalize, Observable, shareReplay, of, tap } from 'rxjs';
 import { User } from './user.model';
 
 interface LoginCredentials {
@@ -28,11 +28,19 @@ export class AuthService {
     me: null,
   });
 
+  private refreshInFlight: Observable<unknown> | null = null;
+
   readonly me = computed(() => this.state().me);
   readonly isAuthenticated = computed(() => this.state().me !== null);
 
   getMe() {
-    return this.http.get<User>('/api/auth/me').pipe(tap((user) => this.state.set({ me: user })));
+    return this.http.get<User>('/api/auth/me').pipe(
+      tap((user) => this.state.set({ me: user })),
+      catchError(() => {
+        this.clearCurrentSession();
+        return of(null);
+      }),
+    );
   }
 
   login(credentials: LoginCredentials) {
@@ -48,6 +56,19 @@ export class AuthService {
   }
 
   logout() {
-    return this.http.post('/api/auth/logout', {}).pipe(tap(() => this.state.set({ me: null })));
+    return this.http.post('/api/auth/logout', {}).pipe(tap(() => this.clearCurrentSession()));
+  }
+
+  refreshCurrentSession() {
+    this.refreshInFlight ??= this.http.post('/api/auth/refresh', {}).pipe(
+      finalize(() => (this.refreshInFlight = null)),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
+
+    return this.refreshInFlight;
+  }
+
+  clearCurrentSession() {
+    this.state.set({ me: null });
   }
 }
