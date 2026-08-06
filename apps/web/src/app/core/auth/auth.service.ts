@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, finalize, Observable, shareReplay, of, tap } from 'rxjs';
 import { User } from './user.model';
+import { Router } from '@angular/router';
 
 interface LoginCredentials {
   email: string;
@@ -23,21 +24,19 @@ interface AuthState {
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
 
-  private readonly state = signal<AuthState>({
-    me: null,
-  });
-
-  private refreshInFlight: Observable<unknown> | null = null;
-
+  private readonly state = signal<AuthState>({ me: null });
   readonly me = computed(() => this.state().me);
   readonly isAuthenticated = computed(() => this.state().me !== null);
+
+  private refreshInFlight: Observable<unknown> | null = null;
 
   getMe() {
     return this.http.get<User>('/api/auth/me').pipe(
       tap((user) => this.state.set({ me: user })),
       catchError(() => {
-        this.clearCurrentSession();
+        this.setEndSession();
         return of(null);
       }),
     );
@@ -49,14 +48,14 @@ export class AuthService {
       .pipe(tap((user) => this.state.set({ me: user })));
   }
 
+  logout() {
+    return this.http.post('/api/auth/logout', {}).pipe(tap(() => this.setEndSession()));
+  }
+
   signup(credentials: SignUpCredentials) {
     return this.http
       .post<User>('/api/auth/signup', credentials)
       .pipe(tap((user) => this.state.set({ me: user })));
-  }
-
-  logout() {
-    return this.http.post('/api/auth/logout', {}).pipe(tap(() => this.clearCurrentSession()));
   }
 
   refreshCurrentSession() {
@@ -68,7 +67,8 @@ export class AuthService {
     return this.refreshInFlight;
   }
 
-  clearCurrentSession() {
+  setEndSession() {
     this.state.set({ me: null });
+    this.router.navigateByUrl('/auth');
   }
 }

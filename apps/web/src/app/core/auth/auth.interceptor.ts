@@ -36,7 +36,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return refreshSession(auth).pipe(
           switchMap(() => next(req)),
           catchError((error) => {
-            auth.clearCurrentSession();
+            auth.setEndSession();
             router.navigateByUrl('/auth');
             return throwError(() => error);
           }),
