@@ -9,3 +9,8 @@ type Workspace struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
+
+type WorkspaceWithNotes struct {
+	Workspace
+	Notes []Note `json:"notes"`
+}

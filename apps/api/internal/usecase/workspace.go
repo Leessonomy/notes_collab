@@ -16,6 +16,7 @@ type WorkspaceStorage interface {
 
 type Workspace struct {
 	workspaces WorkspaceStorage
+	notes      NoteStorage
 }
 
 func NewWorkspace(workspaces WorkspaceStorage) *Workspace {
@@ -42,4 +43,35 @@ func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) 
 
 func (w *Workspace) Get(ctx context.Context, ownerID string) ([]domain.Workspace, error) {
 	return w.workspaces.GetByOwner(ctx, ownerID)
+}
+
+func (w *Workspace) GetWorkspacesWithNotes(ctx context.Context, ownerID string) ([]domain.WorkspaceWithNotes, error) {
+	workspaces, err := w.workspaces.GetByOwner(ctx, ownerID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	notes, err := w.notes.GetByOwner(ctx, ownerID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]domain.WorkspaceWithNotes, 0, len(workspaces))
+
+	for _, workspace := range workspaces {
+		list := make([]domain.Note, 0)
+		for _, note := range notes {
+			if note.WorkspaceID == workspace.ID {
+				list = append(list, note)
+			}
+		}
+		result = append(result, domain.WorkspaceWithNotes{
+			Workspace: workspace,
+			Notes:     list,
+		})
+	}
+
+	return result, nil
 }

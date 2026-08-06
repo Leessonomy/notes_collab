@@ -28,6 +28,18 @@ func (c *WorkspaceController) Get(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, data)
 }
 
+func (c *WorkspaceController) GetWithNotes(w http.ResponseWriter, r *http.Request) {
+	userID := utils.UserIDFromContext(r.Context())
+
+	data, err := c.workspaceUseCase.Get(r.Context(), userID)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, data)
+}
+
 func (c *WorkspaceController) Create(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 
