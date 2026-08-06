@@ -10,11 +10,11 @@ import (
 )
 
 type NoteController struct {
-	note *usecase.Note
+	noteUseCase *usecase.Note
 }
 
-func NewNoteController(note *usecase.Note) *NoteController {
-	return &NoteController{note: note}
+func NewNoteController(noteUc *usecase.Note) *NoteController {
+	return &NoteController{noteUseCase: noteUc}
 }
 
 func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +36,7 @@ func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	note, err := c.note.Create(r.Context(), dto.CreateNoteInput{
+	note, err := c.noteUseCase.Create(r.Context(), dto.CreateNoteInput{
 		WorkspaceID: body.WorkspaceID,
 		Title:       body.Title,
 		Content:     body.Content,
@@ -53,7 +53,7 @@ func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
 func (c *NoteController) Get(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 
-	notes, err := c.note.Get(r.Context(), userID)
+	notes, err := c.noteUseCase.Get(r.Context(), userID)
 	if err != nil {
 		domainError(w, err)
 		return

@@ -9,17 +9,17 @@ import (
 )
 
 type WorkspaceController struct {
-	workspace *usecase.Workspace
+	workspaceUseCase *usecase.Workspace
 }
 
 func NewWorkspaceController(workspace *usecase.Workspace) *WorkspaceController {
-	return &WorkspaceController{workspace: workspace}
+	return &WorkspaceController{workspaceUseCase: workspace}
 }
 
 func (c *WorkspaceController) Get(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 
-	data, err := c.workspace.Get(r.Context(), userID)
+	data, err := c.workspaceUseCase.Get(r.Context(), userID)
 	if err != nil {
 		domainError(w, err)
 		return
@@ -40,7 +40,7 @@ func (c *WorkspaceController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workspace, err := c.workspace.Create(r.Context(), dto.CreateWorkspaceInput{
+	workspace, err := c.workspaceUseCase.Create(r.Context(), dto.CreateWorkspaceInput{
 		Name:    body.Name,
 		OwnerID: userID,
 	})

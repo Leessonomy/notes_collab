@@ -16,13 +16,13 @@ import (
 const minPasswordLength = 8
 
 type AuthController struct {
-	auth          *usecase.Auth
+	authUseCase   *usecase.Auth
 	secureCookies bool
 }
 
-func NewAuthController(auth *usecase.Auth, secureCookies bool) *AuthController {
+func NewAuthController(authUc *usecase.Auth, secureCookies bool) *AuthController {
 	return &AuthController{
-		auth:          auth,
+		authUseCase:   authUc,
 		secureCookies: secureCookies,
 	}
 }
@@ -59,7 +59,7 @@ func (c *AuthController) Me(w http.ResponseWriter, r *http.Request) {
 
 	userID := utils.UserIDFromContext(r.Context())
 
-	user, _ := c.auth.GetUserSession(r.Context(), userID)
+	user, _ := c.authUseCase.GetUserSession(r.Context(), userID)
 
 	writeJSON(w, http.StatusOK, user)
 
@@ -78,7 +78,7 @@ func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := c.auth.SignUp(r.Context(), dto.SignUpInput{
+	session, err := c.authUseCase.SignUp(r.Context(), dto.SignUpInput{
 		Name:     body.Name,
 		Email:    body.Email,
 		Password: body.Password,
@@ -106,7 +106,7 @@ func (c *AuthController) LogIn(w http.ResponseWriter, r *http.Request) {
 
 	body.Email = strings.ToLower(strings.TrimSpace(body.Email))
 
-	session, err := c.auth.LogIn(r.Context(), dto.LogInInput{
+	session, err := c.authUseCase.LogIn(r.Context(), dto.LogInInput{
 		Email:    body.Email,
 		Password: body.Password,
 	})
@@ -127,7 +127,7 @@ func (c *AuthController) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := c.auth.Refresh(r.Context(), cookie.Value)
+	session, err := c.authUseCase.Refresh(r.Context(), cookie.Value)
 	if err != nil {
 		if errors.Is(err, domain.ErrTokenNotFound) {
 			c.clearCookies(w, utils.AccessCookieName)
@@ -144,7 +144,7 @@ func (c *AuthController) Refresh(w http.ResponseWriter, r *http.Request) {
 
 func (c *AuthController) LogOut(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie(utils.RefreshCookieName); err == nil {
-		c.auth.LogOut(r.Context(), cookie.Value)
+		c.authUseCase.LogOut(r.Context(), cookie.Value)
 	}
 
 	c.clearCookies(w, utils.AccessCookieName)
