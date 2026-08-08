@@ -46,7 +46,7 @@ export default tseslint.config(
               allow: ['core', 'shared', ['feature', { featureName: '${from.featureName}' }]],
             },
             { from: 'pages', allow: ['core', 'shared', 'feature', 'pages'] },
-            { from: 'layout', allow: ['core', 'shared', 'feature', 'layout'] },
+            { from: 'layout', allow: ['core', 'shared', 'feature', 'layout', 'app'] },
             { from: 'app', allow: ['core', 'shared', 'feature', 'pages', 'layout', 'app'] },
           ],
         },

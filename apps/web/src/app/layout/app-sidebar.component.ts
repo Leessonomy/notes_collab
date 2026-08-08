@@ -1,25 +1,22 @@
 import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { HlmIcon } from '@spartan-ng/helm/icon';
-import { HlmSeparator } from '@spartan-ng/helm/separator';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { BrnCollapsibleImports } from '@spartan-ng/brain/collapsible';
 import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { NotesFacade, NoteTabsService } from '../features/notes';
 import { WorkspaceFacade, WorkspaceInviteService } from '../features/workspace';
+import { AppFacade } from '../app.facade';
+import { appUrls } from '../core/app-urls';
 import {
   lucidePlus,
   lucideFileText,
-  lucideChevronDown,
   lucideChevronRight,
   lucideSettings,
-  lucideLink,
-  lucideCheck,
-  lucideUsers,
   lucideFolderOpen,
   lucideUserPlus,
-  lucidePlusCircle,
 } from '@ng-icons/lucide';
 
 @Component({
@@ -31,44 +28,56 @@ import {
     HlmTooltipImports,
     BrnCollapsibleImports,
     HlmCollapsibleImports,
-    HlmSeparator,
   ],
   providers: [
     provideIcons({
       lucidePlus,
       lucideFileText,
-      lucideChevronDown,
       lucideChevronRight,
       lucideSettings,
-      lucideLink,
-      lucideCheck,
-      lucideUsers,
       lucideFolderOpen,
       lucideUserPlus,
-      lucidePlusCircle,
     }),
   ],
   template: `
     <div hlmSidebar side="left" collapsible="icon" class="w-2xs">
       <div hlmSidebarHeader>
         <div hlmSidebarGroup>
+          <div
+            hlmSidebarGroupLabel
+            class="text-[13px] font-semibold uppercase tracking-wider text-sidebar-foreground/60"
+          >
+            <span>Workspaces</span>
+            <span
+              class="ml-3 inline-flex items-center leading-none text-[12px] font-bold tabular-nums text-sidebar-foreground"
+            >
+              {{ workspaces().length }}
+            </span>
+          </div>
+
+          @if (isAdmin) {
+            <button hlmSidebarGroupAction (click)="createWorkspace()">
+              <ng-icon hlm name="lucidePlus" size="sm" />
+            </button>
+          }
+
           <div hlmSidebarGroupContent>
             <ul hlmSidebarMenu>
-              <hlm-collapsible [expanded]="true" class="group/collapsible">
-                @let currentWorkspace = this.currentWorkspace();
-                <li hlmSidebarMenuItem>
-                  <div class="flex items-center gap-1">
+              @for (workspace of workspaces(); track workspace.id) {
+                <hlm-collapsible
+                  [expanded]="isOpen(workspace.id)"
+                  (expandedChange)="setOpen(workspace.id, $event)"
+                  class="group/collapsible"
+                >
+                  <li hlmSidebarMenuItem>
                     <button
                       hlmCollapsibleTrigger
                       hlmSidebarMenuButton
-                      class="flex w-full items-center justify-between"
+                      [isActive]="workspace.id === currentWorkspace()?.id"
+                      (click)="selectWorkspace(workspace.id)"
                     >
-                      <span class="flex items-center gap-2 truncate">
-                        <ng-icon hlm name="lucideFolderOpen" size="sm" />
-                        <span class="font-medium truncate group-data-[collapsible=icon]:hidden">
-                          {{ currentWorkspace?.name ?? 'Select Workspace' }}
-                        </span>
-                      </span>
+                      <ng-icon hlm name="lucideFolderOpen" size="sm" />
+                      <span>{{ workspace.name }}</span>
                       <ng-icon
                         hlm
                         name="lucideChevronRight"
@@ -76,109 +85,64 @@ import {
                         class="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90"
                       />
                     </button>
+
                     @if (isAdmin) {
-                      <button
-                        hlmSidebarMenuButton
-                        size="sm"
-                        class="h-8 w-8 p-0 flex justify-center"
-                        (click)="createWorkspace()"
-                      >
-                        <ng-icon hlm name="lucidePlusCircle" size="sm" />
+                      <button hlmSidebarMenuAction showOnHover (click)="createNote(workspace.id)">
+                        <ng-icon hlm name="lucidePlus" size="sm" />
                       </button>
                     }
-                  </div>
-                  <hlm-collapsible-content>
-                    <ul hlmSidebarMenuSub>
-                      @for (workspace of workspaces(); track workspace.id) {
-                        <li hlmSidebarMenuSubItem>
-                          <button
-                            hlmSidebarMenuSubButton
-                            class="w-full"
-                            [class.bg-accent]="workspace.id === currentWorkspace?.id"
-                            (click)="selectWorkspace(workspace.id)"
-                          >
-                            <span class="truncate">{{ workspace.name }}</span>
-                            @if (workspace.id === currentWorkspace?.id) {
-                              <ng-icon
-                                hlm
-                                name="lucideCheck"
-                                size="xs"
-                                class="ml-auto text-primary"
-                              />
-                            }
-                          </button>
-                        </li>
-                      }
-                      @if (isAdmin) {
-                        <li hlmSidebarMenuSubItem>
-                          <hr hlmSeparator class="my-1" />
-                        </li>
-                        <li hlmSidebarMenuSubItem>
-                          <button
-                            hlmSidebarMenuSubButton
-                            class="w-full text-muted-foreground"
-                            (click)="copyWorkspaceInviteLink()"
-                          >
-                            <ng-icon hlm name="lucideUserPlus" size="xs" />
-                            <span>Invite to Workspace</span>
-                          </button>
-                        </li>
-                      }
-                    </ul>
-                  </hlm-collapsible-content>
-                </li>
-              </hlm-collapsible>
-              <hlm-collapsible [expanded]="notesOpen()" class="group/collapsible">
+
+                    <hlm-collapsible-content>
+                      <ul hlmSidebarMenuSub>
+                        @for (note of notesFacade.byWorkspace(workspace.id); track note.id) {
+                          <li hlmSidebarMenuSubItem>
+                            <button
+                              hlmSidebarMenuSubButton
+                              [isActive]="note.id === currentNote()?.id"
+                              (click)="openNote(note.id)"
+                            >
+                              <ng-icon hlm name="lucideFileText" size="xs" />
+                              <span>{{ note.title || 'Untitled' }}</span>
+                            </button>
+                          </li>
+                        } @empty {
+                          <li hlmSidebarMenuSubItem>
+                            <div class="px-2 py-3 text-center text-sm text-muted-foreground">
+                              No notes yet
+                            </div>
+                          </li>
+                        }
+
+                        @if (isAdmin) {
+                          <li hlmSidebarMenuSubItem>
+                            <div hlmSidebarSeparator class="my-1"></div>
+                          </li>
+                          <li hlmSidebarMenuSubItem>
+                            <button
+                              hlmSidebarMenuSubButton
+                              class="text-muted-foreground"
+                              (click)="copyInviteLink(workspace.id)"
+                            >
+                              <ng-icon hlm name="lucideUserPlus" size="xs" />
+                              <span>Invite to Workspace</span>
+                            </button>
+                          </li>
+                        }
+                      </ul>
+                    </hlm-collapsible-content>
+                  </li>
+                </hlm-collapsible>
+              } @empty {
                 <li hlmSidebarMenuItem>
-                  <div class="flex items-center gap-1">
-                    <button hlmCollapsibleTrigger hlmSidebarMenuButton class="flex-1">
-                      <ng-icon hlm name="lucideFileText" size="sm" />
-                      <span>Notes</span>
-                      <ng-icon
-                        hlm
-                        name="lucideChevronRight"
-                        size="sm"
-                        class="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90"
-                      />
-                    </button>
-                    @if (isAdmin) {
-                      <button
-                        hlmSidebarMenuButton
-                        size="sm"
-                        class="h-8 w-8 p-0 flex justify-center"
-                        (click)="createNoteFromSidebar()"
-                      >
-                        <ng-icon hlm name="lucidePlusCircle" size="sm" />
-                      </button>
+                  <div class="px-2 py-4 text-center text-sm text-muted-foreground">
+                    @if (isLoading()) {
+                      Loading workspaces…
+                    } @else {
+                      No workspaces yet
                     }
                   </div>
-                  <hlm-collapsible-content>
-                    <ul hlmSidebarMenuSub>
-                      @for (note of workspaceNotes(); track note.id) {
-                        <li hlmSidebarMenuSubItem>
-                          <button
-                            hlmSidebarMenuSubButton
-                            class="w-full h-auto min-h-[2rem] py-1.5"
-                            [class.bg-accent]="note.id === currentNote()?.id"
-                            (click)="selectNote(note.id)"
-                          >
-                            <span class="whitespace-normal break-words text-left leading-tight">{{
-                              note.title || 'Untitled'
-                            }}</span>
-                          </button>
-                        </li>
-                      }
-                      @if (!workspaceNotes().length) {
-                        <li hlmSidebarMenuSubItem>
-                          <div class="px-2 py-4 text-center text-sm text-muted-foreground">
-                            No notes yet
-                          </div>
-                        </li>
-                      }
-                    </ul>
-                  </hlm-collapsible-content>
                 </li>
-              </hlm-collapsible>
+              }
             </ul>
           </div>
         </div>
@@ -200,45 +164,58 @@ import {
   `,
 })
 export class AppSidebarComponent {
+  private readonly router = inject(Router);
   private readonly workspaceFacade = inject(WorkspaceFacade);
-  private readonly notesFacade = inject(NotesFacade);
   private readonly noteTabs = inject(NoteTabsService);
   private readonly inviteService = inject(WorkspaceInviteService);
+  private readonly appFacade = inject(AppFacade);
+
+  protected readonly notesFacade = inject(NotesFacade);
+
+  private readonly openWorkspaces = signal<Record<string, boolean>>({});
 
   readonly workspaces = this.workspaceFacade.workspaces;
   readonly currentWorkspace = this.workspaceFacade.currentWorkspace;
   readonly currentNote = this.noteTabs.currentNote;
-  readonly workspaceNotes = this.notesFacade.notes;
+  readonly isLoading = this.appFacade.isLoading;
 
   readonly isAdmin = true;
-  readonly notesOpen = signal(true);
+
+  isOpen(workspaceId: string) {
+    return this.openWorkspaces()[workspaceId] ?? workspaceId === this.currentWorkspace()?.id;
+  }
+
+  setOpen(workspaceId: string, open: boolean) {
+    this.openWorkspaces.update((state) => ({ ...state, [workspaceId]: open }));
+  }
 
   selectWorkspace(id: string) {
     this.workspaceFacade.switch(id);
-    this.noteTabs.closeAll();
+    this.router.navigateByUrl(appUrls.workspace);
   }
 
   createWorkspace() {
     const name = prompt('Workspace name:');
     if (name) {
-      this.workspaceFacade.create(name).subscribe(() => this.noteTabs.closeAll());
+      this.workspaceFacade.create(name).subscribe((workspace) => {
+        this.setOpen(workspace.id, true);
+        this.router.navigateByUrl(appUrls.workspace);
+      });
     }
   }
 
-  selectNote(id: string) {
-    const note = this.workspaceNotes().find((n) => n.id === id);
+  createNote(workspaceId: string) {
+    this.setOpen(workspaceId, true);
+    this.notesFacade.createAndOpen(workspaceId);
+  }
+
+  openNote(id: string) {
+    const note = this.notesFacade.notes().find((n) => n.id === id);
     if (note) this.notesFacade.openNote(note);
   }
 
-  createNoteFromSidebar() {
-    const ws = this.currentWorkspace();
-    if (ws) this.notesFacade.createAndOpen(ws.id);
-  }
-
-  copyWorkspaceInviteLink() {
-    const ws = this.currentWorkspace();
-    if (!ws) return;
-    const link = this.inviteService.generateInviteLink(ws.id);
+  copyInviteLink(workspaceId: string) {
+    const link = this.inviteService.generateInviteLink(workspaceId);
     navigator.clipboard.writeText(link);
   }
 }

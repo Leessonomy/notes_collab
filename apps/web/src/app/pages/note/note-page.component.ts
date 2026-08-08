@@ -1,7 +1,6 @@
 import { Component, inject, effect } from '@angular/core';
 import { TiptapEditorComponent } from '../../shared/ui/editor/tiptap-editor.component';
-// eslint-disable-next-line boundaries/element-types
-import { ContentLayoutComponent } from '../../layout/content-layout.component';
+import { ContentLayoutComponent } from '../../shared/ui/content-layout/content-layout.component';
 import {
   NotesFacade,
   NoteTabsService,

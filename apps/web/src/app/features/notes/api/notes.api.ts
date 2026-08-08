@@ -3,12 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Note } from '../domain/note.model';
 
 @Injectable({ providedIn: 'root' })
-export class NotesApiService {
+export class NotesApi {
   private readonly http = inject(HttpClient);
-
-  get() {
-    return this.http.get<Note[]>('/api/notes');
-  }
 
   create(payload: { workspaceId: string; title: string; content: string }) {
     return this.http.post<Note>('/api/notes', payload);

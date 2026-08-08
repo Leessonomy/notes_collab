@@ -4,7 +4,6 @@ import { Workspace } from '../domain/workspace.model';
 interface WorkspaceState {
   workspaces: Workspace[];
   activeWorkspace: Workspace | null;
-  isLoading: boolean;
   error: string | null;
 }
 
@@ -13,20 +12,18 @@ export class WorkspaceStore {
   private readonly state = signal<WorkspaceState>({
     workspaces: [],
     activeWorkspace: null,
-    isLoading: false,
     error: null,
   });
 
   readonly workspaces = computed(() => this.state().workspaces);
   readonly activeWorkspace = computed(() => this.state().activeWorkspace);
-  readonly isLoading = computed(() => this.state().isLoading);
   readonly error = computed(() => this.state().error);
 
   setWorkspaces(workspaces: Workspace[]) {
     this.state.update((state) => ({ ...state, workspaces }));
   }
 
-  addNew(workspace: Workspace) {
+  add(workspace: Workspace) {
     this.state.update((state) => ({
       ...state,
       workspaces: [...state.workspaces, workspace],
@@ -35,10 +32,6 @@ export class WorkspaceStore {
 
   switchActive(workspace: Workspace) {
     this.state.update((state) => ({ ...state, activeWorkspace: workspace }));
-  }
-
-  setLoading(isLoading: boolean) {
-    this.state.update((state) => ({ ...state, isLoading }));
   }
 
   setError(error: string | null) {

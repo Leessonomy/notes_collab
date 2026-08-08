@@ -1,7 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { WorkspaceFacade } from '../../features/workspace';
 import { NotesFacade, NoteGridComponent, Note } from '../../features/notes';
-import { ContentLayoutComponent } from '../../layout/content-layout.component';
+import { ContentLayoutComponent } from '../../shared/ui/content-layout/content-layout.component';
 
 @Component({
   selector: 'app-workspace-page',
@@ -36,8 +36,12 @@ export class WorkspacePageComponent {
   private readonly notesFacade = inject(NotesFacade);
 
   readonly currentWorkspace = this.workspaceFacade.currentWorkspace;
-  readonly workspaceNotes = this.notesFacade.notes;
   readonly isAdmin = true;
+
+  readonly workspaceNotes = computed(() => {
+    const workspace = this.currentWorkspace();
+    return workspace ? this.notesFacade.byWorkspace(workspace.id) : [];
+  });
 
   createNote() {
     const workspace = this.currentWorkspace();

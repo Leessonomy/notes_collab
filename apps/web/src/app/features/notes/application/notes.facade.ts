@@ -2,17 +2,17 @@ import { inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, EMPTY, Subject, switchMap } from 'rxjs';
 import { NotesStore } from './notes.store';
-import { NotesApiService } from '../api/notes-api.service';
+import { NotesApi } from '../api/notes.api';
 import { NoteTabsService } from './note-tabs.service';
+import { Note } from '../domain/note.model';
 
 @Injectable()
 export class NotesFacade {
   private readonly store = inject(NotesStore);
-  private readonly api = inject(NotesApiService);
+  private readonly api = inject(NotesApi);
   private readonly tabs = inject(NoteTabsService);
 
   readonly notes = this.store.notes;
-  readonly isLoading = this.store.isLoading;
   readonly error = this.store.error;
 
   private readonly saveRequests = new Subject<{ noteId: string; content: string }>();
@@ -34,19 +34,12 @@ export class NotesFacade {
       .subscribe((updated) => this.store.upsert(updated));
   }
 
-  loadForWorkspace(workspaceId: string) {
-    this.store.setLoading(true);
-    this.api.get().subscribe({
-      next: (notes) => {
-        this.store.setNotes(workspaceId, notes);
-        this.store.setError(null);
-        this.store.setLoading(false);
-      },
-      error: () => {
-        this.store.setError('Failed to load notes');
-        this.store.setLoading(false);
-      },
-    });
+  set(notes: Note[]) {
+    this.store.setNotes(notes);
+  }
+
+  byWorkspace(workspaceId: string) {
+    return this.store.byWorkspace(workspaceId);
   }
 
   createAndOpen(workspaceId: string) {

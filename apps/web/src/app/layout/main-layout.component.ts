@@ -1,10 +1,9 @@
-import { Component, OnInit, effect, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HlmSidebarImports, provideHlmSidebarConfig } from '@spartan-ng/helm/sidebar';
 import { AppHeaderComponent } from './app-header.component';
 import { AppSidebarComponent } from './app-sidebar.component';
-import { WorkspaceFacade } from '../features/workspace';
-import { NotesFacade } from '../features/notes';
+import { AppFacade } from '../app.facade';
 
 @Component({
   selector: 'app-main-layout',
@@ -29,22 +28,9 @@ import { NotesFacade } from '../features/notes';
   `,
 })
 export class MainLayoutComponent implements OnInit {
-  private readonly workspaceFacade = inject(WorkspaceFacade);
-  private readonly notesFacade = inject(NotesFacade);
-
-  private lastLoadedWorkspaceId: string | null = null;
-
-  constructor() {
-    effect(() => {
-      const id = this.workspaceFacade.currentWorkspace()?.id ?? null;
-      if (id && id !== this.lastLoadedWorkspaceId) {
-        this.lastLoadedWorkspaceId = id;
-        this.notesFacade.loadForWorkspace(id);
-      }
-    });
-  }
+  private readonly appFacade = inject(AppFacade);
 
   ngOnInit() {
-    this.workspaceFacade.load();
+    this.appFacade.load();
   }
 }

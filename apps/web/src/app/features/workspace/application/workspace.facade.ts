@@ -1,42 +1,29 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { tap } from 'rxjs';
 import { WorkspaceStore } from './workspace.store';
-import { WorkspaceService } from '../api/workspace.service';
-import { AuthService } from '../../../core/auth/auth.service';
+import { WorkspaceApi } from '../api/workspace.api';
+import { Workspace } from '../domain/workspace.model';
 
 @Injectable()
 export class WorkspaceFacade {
   private readonly store = inject(WorkspaceStore);
-  private readonly api = inject(WorkspaceService);
-  private readonly auth = inject(AuthService);
+  private readonly api = inject(WorkspaceApi);
 
   readonly workspaces = this.store.workspaces;
-  readonly isLoading = this.store.isLoading;
   readonly error = this.store.error;
 
-  readonly currentWorkspace = computed(
+  readonly currentWorkspace = computed<Workspace | null>(
     () => this.store.activeWorkspace() ?? this.store.workspaces()[0] ?? null,
   );
 
-  load() {
-    this.store.setLoading(true);
-    this.api.getAll().subscribe({
-      next: (workspaces) => {
-        this.store.setWorkspaces(workspaces);
-        this.store.setError(null);
-        this.store.setLoading(false);
-      },
-      error: () => {
-        this.store.setError('Failed to load workspaces');
-        this.store.setLoading(false);
-      },
-    });
+  set(workspaces: Workspace[]) {
+    this.store.setWorkspaces(workspaces);
   }
 
   create(name: string) {
-    return this.api.create({ name, ownerId: this.auth.me()!.id }).pipe(
+    return this.api.create({ name }).pipe(
       tap((workspace) => {
-        this.store.addNew(workspace);
+        this.store.add(workspace);
         this.store.switchActive(workspace);
       }),
     );

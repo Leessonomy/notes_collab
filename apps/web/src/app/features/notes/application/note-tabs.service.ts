@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { NotesStore } from './notes.store';
+import { appUrls } from '../../../core/app-urls';
 
 export interface NoteTab {
   noteId: string;
@@ -37,7 +38,7 @@ export class NoteTabsService {
     if (!this._tabs().some((tab) => tab.noteId === note.id)) {
       this._tabs.update((tabs) => [...tabs, { noteId: note.id, title: note.title || 'Untitled' }]);
     }
-    this.router.navigate(['/note', note.id]);
+    this.router.navigateByUrl(appUrls.note(note.id));
   }
 
   closeTab(noteId: string) {
@@ -49,16 +50,11 @@ export class NoteTabsService {
     if (this.activeNoteId() !== noteId) return;
 
     const next = remaining[Math.min(index, remaining.length - 1)];
-    this.router.navigate(next ? ['/note', next.noteId] : ['/workspace']);
-  }
-
-  closeAll() {
-    this._tabs.set([]);
-    this.router.navigate(['/workspace']);
+    this.router.navigateByUrl(next ? appUrls.note(next.noteId) : appUrls.workspace);
   }
 
   private noteIdFromUrl(): string | null {
-    const match = this.router.url.match(/^\/note\/([^/?#]+)/);
+    const match = this.router.url.match(/^\/app\/note\/([^/?#]+)/);
     return match ? decodeURIComponent(match[1]) : null;
   }
 }
