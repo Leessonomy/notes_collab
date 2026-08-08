@@ -49,15 +49,3 @@ func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusCreated, note)
 }
-
-func (c *NoteController) Get(w http.ResponseWriter, r *http.Request) {
-	userID := utils.UserIDFromContext(r.Context())
-
-	notes, err := c.noteUseCase.Get(r.Context(), userID)
-	if err != nil {
-		domainError(w, err)
-		return
-	}
-
-	writeJSON(w, http.StatusOK, notes)
-}

@@ -16,22 +16,10 @@ func NewWorkspaceController(workspace *usecase.Workspace) *WorkspaceController {
 	return &WorkspaceController{workspaceUseCase: workspace}
 }
 
-func (c *WorkspaceController) Get(w http.ResponseWriter, r *http.Request) {
-	userID := utils.UserIDFromContext(r.Context())
-
-	data, err := c.workspaceUseCase.Get(r.Context(), userID)
-	if err != nil {
-		domainError(w, err)
-		return
-	}
-
-	writeJSON(w, http.StatusOK, data)
-}
-
 func (c *WorkspaceController) GetWithNotes(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 
-	data, err := c.workspaceUseCase.GetWorkspacesWithNotes(r.Context(), userID)
+	data, err := c.workspaceUseCase.GetWithNotes(r.Context(), userID)
 	if err != nil {
 		domainError(w, err)
 		return

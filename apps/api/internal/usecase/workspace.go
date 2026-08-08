@@ -41,11 +41,7 @@ func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) 
 	return workspace, nil
 }
 
-func (w *Workspace) Get(ctx context.Context, ownerID string) ([]domain.Workspace, error) {
-	return w.workspaces.GetByOwner(ctx, ownerID)
-}
-
-func (w *Workspace) GetWorkspacesWithNotes(ctx context.Context, ownerID string) ([]domain.WorkspaceWithNotes, error) {
+func (w *Workspace) GetWithNotes(ctx context.Context, ownerID string) ([]dto.WorkspaceWithNotes, error) {
 	workspaces, err := w.workspaces.GetByOwner(ctx, ownerID)
 
 	if err != nil {
@@ -58,7 +54,7 @@ func (w *Workspace) GetWorkspacesWithNotes(ctx context.Context, ownerID string) 
 		return nil, err
 	}
 
-	result := make([]domain.WorkspaceWithNotes, 0, len(workspaces))
+	result := make([]dto.WorkspaceWithNotes, 0, len(workspaces))
 
 	for _, workspace := range workspaces {
 		list := make([]domain.Note, 0)
@@ -67,7 +63,7 @@ func (w *Workspace) GetWorkspacesWithNotes(ctx context.Context, ownerID string) 
 				list = append(list, note)
 			}
 		}
-		result = append(result, domain.WorkspaceWithNotes{
+		result = append(result, dto.WorkspaceWithNotes{
 			Workspace: workspace,
 			Notes:     list,
 		})

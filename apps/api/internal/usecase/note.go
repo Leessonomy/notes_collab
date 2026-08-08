@@ -41,7 +41,3 @@ func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.No
 
 	return note, nil
 }
-
-func (n *Note) Get(ctx context.Context, ownerID string) ([]domain.Note, error) {
-	return n.notes.GetByOwner(ctx, ownerID)
-}

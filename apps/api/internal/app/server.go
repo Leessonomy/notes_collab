@@ -42,7 +42,6 @@ func createHandler(cfg *config, pool *pgxpool.Pool) http.Handler {
 
 	mux.Handle("GET /api/auth/me", protectedAuth(authCtrl.Me))
 
-	mux.Handle("GET /api/notes", protectedAuth(noteCtrl.Get))
 	mux.Handle("POST /api/notes", protectedAuth(noteCtrl.Create))
 
 	mux.Handle("GET /api/workspaces", protectedAuth(workspaceCtrl.GetWithNotes))
