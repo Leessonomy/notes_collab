@@ -35,10 +35,7 @@ export class AuthService {
   getMe() {
     return this.http.get<User>('/api/auth/me').pipe(
       tap((user) => this.state.set({ me: user })),
-      catchError(() => {
-        this.setEndSession();
-        return of(null);
-      }),
+      catchError(() => of(null)),
     );
   }
 
