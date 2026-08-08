@@ -60,5 +60,21 @@ func migrate(ctx context.Context, pool *pgxpool.Pool) error {
 		return err
 	}
 
+	if _, err := pool.Exec(ctx, `
+		DO $$
+		BEGIN
+			IF EXISTS (
+				SELECT 1 FROM information_schema.columns
+				WHERE table_schema = current_schema()
+					AND table_name = 'notes'
+					AND column_name = 'author_id'
+			) THEN
+				ALTER TABLE notes RENAME COLUMN author_id TO owner_id;
+			END IF;
+		END $$
+	`); err != nil {
+		return err
+	}
+
 	return nil
 }

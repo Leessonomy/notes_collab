@@ -19,8 +19,8 @@ type Workspace struct {
 	notes      NoteStorage
 }
 
-func NewWorkspace(workspaces WorkspaceStorage) *Workspace {
-	return &Workspace{workspaces: workspaces}
+func NewWorkspace(workspaces WorkspaceStorage, notes NoteStorage) *Workspace {
+	return &Workspace{workspaces: workspaces, notes: notes}
 }
 
 func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) (domain.Workspace, error) {

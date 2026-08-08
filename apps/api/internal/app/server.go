@@ -20,7 +20,7 @@ func createHandler(cfg *config, pool *pgxpool.Pool) http.Handler {
 	noteRepo := repository.NewNoteRepo(pool)
 
 	authUC := usecase.NewAuth(userRepo, refreshRepo, jwt)
-	workspaceUC := usecase.NewWorkspace(workspaceRepo)
+	workspaceUC := usecase.NewWorkspace(workspaceRepo, noteRepo)
 	noteUC := usecase.NewNote(noteRepo)
 
 	authCtrl := controller.NewAuthController(authUC, cfg.CookieSecure)
@@ -45,7 +45,7 @@ func createHandler(cfg *config, pool *pgxpool.Pool) http.Handler {
 	mux.Handle("GET /api/notes", protectedAuth(noteCtrl.Get))
 	mux.Handle("POST /api/notes", protectedAuth(noteCtrl.Create))
 
-	mux.Handle("GET /api/workspaces", protectedAuth(workspaceCtrl.Get))
+	mux.Handle("GET /api/workspaces", protectedAuth(workspaceCtrl.GetWithNotes))
 	mux.Handle("POST /api/workspaces", protectedAuth(workspaceCtrl.Create))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

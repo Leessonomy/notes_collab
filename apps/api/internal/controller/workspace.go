@@ -31,7 +31,7 @@ func (c *WorkspaceController) Get(w http.ResponseWriter, r *http.Request) {
 func (c *WorkspaceController) GetWithNotes(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 
-	data, err := c.workspaceUseCase.Get(r.Context(), userID)
+	data, err := c.workspaceUseCase.GetWorkspacesWithNotes(r.Context(), userID)
 	if err != nil {
 		domainError(w, err)
 		return
