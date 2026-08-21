@@ -12,6 +12,7 @@ import (
 type NoteStorage interface {
 	Create(ctx context.Context, n domain.Note) error
 	GetByOwner(ctx context.Context, ownerID string) ([]domain.Note, error)
+	Delete(ctx context.Context, noteID, ownerID string) error
 }
 
 type Note struct {
@@ -40,4 +41,8 @@ func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.No
 	}
 
 	return note, nil
+}
+
+func (n *Note) Delete(ctx context.Context, noteID, ownerID string) error {
+	return n.notes.Delete(ctx, noteID, ownerID)
 }

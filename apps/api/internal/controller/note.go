@@ -49,3 +49,16 @@ func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusCreated, note)
 }
+
+func (c *NoteController) Delete(w http.ResponseWriter, r *http.Request) {
+	userID := utils.UserIDFromContext(r.Context())
+	id := r.PathValue("id")
+
+	err := c.noteUseCase.Delete(r.Context(), id, userID)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

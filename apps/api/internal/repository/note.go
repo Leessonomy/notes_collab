@@ -73,3 +73,16 @@ func (r *NoteRepo) GetByOwner(ctx context.Context, ownerID string) ([]domain.Not
 	}
 	return scanNotes(rows)
 }
+
+func (r *NoteRepo) Delete(ctx context.Context, noteID, ownerID string) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM notes WHERE id = $1 AND owner_id = $2`, noteID, ownerID)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return domain.ErrNoteNotFound
+	}
+
+	return nil
+}
