@@ -13,4 +13,8 @@ export class NotesApi {
   update(id: string, changes: Partial<Pick<Note, 'title' | 'content'>>) {
     return this.http.patch<Note>(`/api/notes/${id}`, changes);
   }
+
+  delete(id: string) {
+    return this.http.delete(`/api/notes/${id}`);
+  }
 }

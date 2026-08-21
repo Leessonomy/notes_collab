@@ -17,6 +17,7 @@ import {
   lucideSettings,
   lucideFolderOpen,
   lucideUserPlus,
+  lucideX,
 } from '@ng-icons/lucide';
 
 @Component({
@@ -37,6 +38,7 @@ import {
       lucideSettings,
       lucideFolderOpen,
       lucideUserPlus,
+      lucideX
     }),
   ],
   template: `
@@ -96,6 +98,7 @@ import {
                       <ul hlmSidebarMenuSub>
                         @for (note of notesFacade.byWorkspace(workspace.id); track note.id) {
                           <li hlmSidebarMenuSubItem>
+                            <div class="flex items-center">
                             <button
                               hlmSidebarMenuSubButton
                               [isActive]="note.id === currentNote()?.id"
@@ -104,6 +107,8 @@ import {
                               <ng-icon hlm name="lucideFileText" size="xs" />
                               <span>{{ note.title || 'Untitled' }}</span>
                             </button>
+                            <button (click)="deleteNote(note.id)" class="rounded-md border border-transparent text-center text-sm transition-all hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:opacity-50 disabled:shadow-none" type="button"><ng-icon hlm name="lucideX" size="sm" /></button>
+                            </div>
                           </li>
                         } @empty {
                           <li hlmSidebarMenuSubItem>
@@ -202,6 +207,10 @@ export class AppSidebarComponent {
         this.router.navigateByUrl(appUrls.workspace);
       });
     }
+  }
+
+  deleteNote(noteId: string) {
+    this.notesFacade.deleteNote(noteId)
   }
 
   createNote(workspaceId: string) {
