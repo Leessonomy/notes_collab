@@ -20,7 +20,7 @@ func (c *WorkspaceController) GetWithNotes(w http.ResponseWriter, r *http.Reques
 	userID := utils.UserIDFromContext(r.Context())
 
 	data, err := c.workspaceUseCase.GetWithNotes(r.Context(), userID)
-	
+
 	if err != nil {
 		domainError(w, err)
 		return
@@ -51,4 +51,17 @@ func (c *WorkspaceController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, workspace)
+}
+
+func (c *WorkspaceController) Delete(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+
+	err := c.workspaceUseCase.Delete(r.Context(), id)
+
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

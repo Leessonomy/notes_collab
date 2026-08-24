@@ -63,3 +63,13 @@ func (r *WorkspaceRepo) GetByOwner(ctx context.Context, ownerID string) ([]domai
 
 	return data, nil
 }
+
+func (r *WorkspaceRepo) Delete(ctx context.Context, workspaceID string) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM workspaces WHERE id = $1`, workspaceID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
