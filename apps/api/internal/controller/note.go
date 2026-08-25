@@ -13,11 +13,11 @@ type NoteController struct {
 	noteUseCase *usecase.Note
 }
 
-func NewNoteController(noteUc *usecase.Note) *NoteController {
-	return &NoteController{noteUseCase: noteUc}
+func NewNoteController(noteUC *usecase.Note) *NoteController {
+	return &NoteController{noteUseCase: noteUC}
 }
 
-func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
+func (c *NoteController) CreateNote(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 
 	var body struct {
@@ -50,7 +50,7 @@ func (c *NoteController) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, note)
 }
 
-func (c *NoteController) Delete(w http.ResponseWriter, r *http.Request) {
+func (c *NoteController) DeleteNote(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 	id := r.PathValue("id")
 

@@ -9,18 +9,18 @@ import (
 	"github.com/google/uuid"
 )
 
-type NoteStorage interface {
+type NoteRepo interface {
 	Create(ctx context.Context, n domain.Note) error
 	GetByOwner(ctx context.Context, ownerID string) ([]domain.Note, error)
 	Delete(ctx context.Context, noteID, ownerID string) error
 }
 
 type Note struct {
-	notes NoteStorage
+	noteRepo NoteRepo
 }
 
-func NewNote(notes NoteStorage) *Note {
-	return &Note{notes: notes}
+func NewNote(noteRepo NoteRepo) *Note {
+	return &Note{noteRepo: noteRepo}
 }
 
 func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.Note, error) {
@@ -36,7 +36,7 @@ func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.No
 		UpdatedAt:   now,
 	}
 
-	if err := n.notes.Create(ctx, note); err != nil {
+	if err := n.noteRepo.Create(ctx, note); err != nil {
 		return domain.Note{}, err
 	}
 
@@ -44,5 +44,5 @@ func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.No
 }
 
 func (n *Note) Delete(ctx context.Context, noteID, ownerID string) error {
-	return n.notes.Delete(ctx, noteID, ownerID)
+	return n.noteRepo.Delete(ctx, noteID, ownerID)
 }

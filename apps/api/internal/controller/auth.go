@@ -20,10 +20,10 @@ type AuthController struct {
 	secureCookies bool
 }
 
-func NewAuthController(authUc *usecase.Auth, secureCookies bool) *AuthController {
+func NewAuthController(authUC *usecase.Auth, isSecure bool) *AuthController {
 	return &AuthController{
-		authUseCase:   authUc,
-		secureCookies: secureCookies,
+		authUseCase:   authUC,
+		secureCookies: isSecure,
 	}
 }
 
@@ -51,7 +51,7 @@ func (c *AuthController) setSession(w http.ResponseWriter, session dto.SessionOu
 	c.setSecureCookie(w, utils.RefreshCookieName, session.RefreshToken, session.RefreshExpiresAt)
 }
 
-func (c *AuthController) Me(w http.ResponseWriter, r *http.Request) {
+func (c *AuthController) GetMe(w http.ResponseWriter, r *http.Request) {
 	_, err := r.Cookie(utils.RefreshCookieName)
 	if err != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)

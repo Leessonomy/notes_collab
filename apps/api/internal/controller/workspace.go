@@ -12,11 +12,11 @@ type WorkspaceController struct {
 	workspaceUseCase *usecase.Workspace
 }
 
-func NewWorkspaceController(workspace *usecase.Workspace) *WorkspaceController {
-	return &WorkspaceController{workspaceUseCase: workspace}
+func NewWorkspaceController(workspaceUC *usecase.Workspace) *WorkspaceController {
+	return &WorkspaceController{workspaceUseCase: workspaceUC}
 }
 
-func (c *WorkspaceController) GetWithNotes(w http.ResponseWriter, r *http.Request) {
+func (c *WorkspaceController) ListWorkspacesWithNotes(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 
 	data, err := c.workspaceUseCase.GetWithNotes(r.Context(), userID)
@@ -29,7 +29,7 @@ func (c *WorkspaceController) GetWithNotes(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, http.StatusOK, data)
 }
 
-func (c *WorkspaceController) Create(w http.ResponseWriter, r *http.Request) {
+func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 
 	var body struct {
@@ -53,7 +53,7 @@ func (c *WorkspaceController) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, workspace)
 }
 
-func (c *WorkspaceController) Delete(w http.ResponseWriter, r *http.Request) {
+func (c *WorkspaceController) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
 	err := c.workspaceUseCase.Delete(r.Context(), id)

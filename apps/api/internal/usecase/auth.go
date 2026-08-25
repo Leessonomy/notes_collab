@@ -11,13 +11,13 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserStorage interface {
+type UserRepo interface {
 	Create(ctx context.Context, u domain.User) error
 	GetByID(ctx context.Context, userID string) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
 }
 
-type TokenStorage interface {
+type TokenRepo interface {
 	Save(ctx context.Context, t domain.RefreshToken) error
 	Refresh(ctx context.Context, oldToken, newToken string, expiresAt time.Time) (string, error)
 	Delete(ctx context.Context, token string) error
@@ -31,27 +31,27 @@ type Session interface {
 }
 
 type Auth struct {
-	users   UserStorage
-	tokens  TokenStorage
-	session Session
+	userRepo  UserRepo
+	tokenRepo TokenRepo
+	session   Session
 }
 
-func NewAuth(users UserStorage, tokens TokenStorage, session Session) *Auth {
+func NewAuth(userRepo UserRepo, tokenRepo TokenRepo, session Session) *Auth {
 	return &Auth{
-		users:   users,
-		tokens:  tokens,
-		session: session,
+		userRepo:  userRepo,
+		tokenRepo: tokenRepo,
+		session:   session,
 	}
 }
 
 func (a *Auth) GetUserSession(ctx context.Context, userID string) (*domain.User, error) {
-	return a.users.GetByID(ctx, userID)
+	return a.userRepo.GetByID(ctx, userID)
 }
 
 func (a *Auth) SignUp(ctx context.Context, input dto.SignUpInput) (dto.SessionOutput, error) {
 	var output dto.SessionOutput
 
-	_, err := a.users.GetByEmail(ctx, input.Email)
+	_, err := a.userRepo.GetByEmail(ctx, input.Email)
 	if err == nil {
 		return output, domain.ErrEmailTaken
 	}
@@ -72,7 +72,7 @@ func (a *Auth) SignUp(ctx context.Context, input dto.SignUpInput) (dto.SessionOu
 		CreatedAt: time.Now().UTC(),
 	}
 
-	if err := a.users.Create(ctx, user); err != nil {
+	if err := a.userRepo.Create(ctx, user); err != nil {
 		return output, err
 	}
 
@@ -89,7 +89,7 @@ func (a *Auth) SignUp(ctx context.Context, input dto.SignUpInput) (dto.SessionOu
 func (a *Auth) LogIn(ctx context.Context, input dto.LogInInput) (dto.SessionOutput, error) {
 	var output dto.SessionOutput
 
-	user, err := a.users.GetByEmail(ctx, input.Email)
+	user, err := a.userRepo.GetByEmail(ctx, input.Email)
 	if err != nil || !utils.CheckPassword(user.Password, input.Password) {
 		return output, domain.ErrInvalidCredentials
 	}
@@ -115,7 +115,7 @@ func (a *Auth) Refresh(ctx context.Context, refreshToken string) (dto.SessionOut
 	now := time.Now().UTC()
 	refreshExpiresAt := now.Add(a.session.RefreshExpire())
 
-	userID, err := a.tokens.Refresh(ctx, refreshToken, newRefreshToken, refreshExpiresAt)
+	userID, err := a.tokenRepo.Refresh(ctx, refreshToken, newRefreshToken, refreshExpiresAt)
 	if err != nil {
 		return output, err
 	}
@@ -134,7 +134,7 @@ func (a *Auth) Refresh(ctx context.Context, refreshToken string) (dto.SessionOut
 }
 
 func (a *Auth) LogOut(ctx context.Context, refreshToken string) error {
-	return a.tokens.Delete(ctx, refreshToken)
+	return a.tokenRepo.Delete(ctx, refreshToken)
 }
 
 func (a *Auth) newSession(ctx context.Context, userID string) (dto.SessionOutput, error) {
@@ -154,7 +154,7 @@ func (a *Auth) newSession(ctx context.Context, userID string) (dto.SessionOutput
 	accessExpiresAt := now.Add(a.session.AccessExpire())
 	refreshExpiresAt := now.Add(a.session.RefreshExpire())
 
-	err = a.tokens.Save(ctx, domain.RefreshToken{
+	err = a.tokenRepo.Save(ctx, domain.RefreshToken{
 		Token:     refreshToken,
 		UserID:    userID,
 		ExpiresAt: refreshExpiresAt,

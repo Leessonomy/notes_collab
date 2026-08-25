@@ -9,19 +9,19 @@ import (
 	"github.com/google/uuid"
 )
 
-type WorkspaceStorage interface {
+type WorkspaceRepo interface {
 	Create(ctx context.Context, w domain.Workspace) error
 	GetByOwner(ctx context.Context, ownerID string) ([]domain.Workspace, error)
 	Delete(ctx context.Context, workspaceID string) error
 }
 
 type Workspace struct {
-	workspaces WorkspaceStorage
-	notes      NoteStorage
+	workspaceRepo WorkspaceRepo
+	noteRepo      NoteRepo
 }
 
-func NewWorkspace(workspaces WorkspaceStorage, notes NoteStorage) *Workspace {
-	return &Workspace{workspaces: workspaces, notes: notes}
+func NewWorkspace(workspaceRepo WorkspaceRepo, noteRepo NoteRepo) *Workspace {
+	return &Workspace{workspaceRepo: workspaceRepo, noteRepo: noteRepo}
 }
 
 func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) (domain.Workspace, error) {
@@ -35,7 +35,7 @@ func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) 
 		UpdatedAt: now,
 	}
 
-	if err := w.workspaces.Create(ctx, workspace); err != nil {
+	if err := w.workspaceRepo.Create(ctx, workspace); err != nil {
 		return domain.Workspace{}, err
 	}
 
@@ -43,13 +43,13 @@ func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) 
 }
 
 func (w *Workspace) GetWithNotes(ctx context.Context, ownerID string) ([]dto.WorkspaceWithNotes, error) {
-	workspaces, err := w.workspaces.GetByOwner(ctx, ownerID)
+	workspaces, err := w.workspaceRepo.GetByOwner(ctx, ownerID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	notes, err := w.notes.GetByOwner(ctx, ownerID)
+	notes, err := w.noteRepo.GetByOwner(ctx, ownerID)
 
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (w *Workspace) GetWithNotes(ctx context.Context, ownerID string) ([]dto.Wor
 }
 
 func (w *Workspace) Delete(ctx context.Context, workspaceID string) error {
-	err := w.workspaces.Delete(ctx, workspaceID)
+	err := w.workspaceRepo.Delete(ctx, workspaceID)
 
 	return err
 }
