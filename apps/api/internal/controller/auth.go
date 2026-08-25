@@ -54,27 +54,31 @@ func (c *AuthController) setSession(w http.ResponseWriter, session dto.SessionOu
 func (c *AuthController) GetMe(w http.ResponseWriter, r *http.Request) {
 	_, err := r.Cookie(utils.RefreshCookieName)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		utils.Unauthorized(w)
+		return
 	}
 
 	userID := utils.UserIDFromContext(r.Context())
 
-	user, _ := c.authUseCase.GetUserSession(r.Context(), userID)
+	user, err := c.authUseCase.GetUserSession(r.Context(), userID)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
 
-	writeJSON(w, http.StatusOK, user)
-
+	utils.WriteJSON(w, http.StatusOK, user)
 }
 
 func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	var body SignUpBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		badRequest(w, "invalid body")
+		utils.BadRequest(w, "invalid body")
 		return
 	}
 	body.Email = strings.ToLower(strings.TrimSpace(body.Email))
 
 	if err := body.validate(); err != nil {
-		badRequest(w, err.Error())
+		utils.BadRequest(w, err.Error())
 		return
 	}
 
@@ -90,7 +94,7 @@ func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	c.setSession(w, session)
 
-	writeJSON(w, http.StatusCreated, session.User)
+	utils.WriteJSON(w, http.StatusCreated, session.User)
 }
 
 func (c *AuthController) LogIn(w http.ResponseWriter, r *http.Request) {
@@ -100,7 +104,7 @@ func (c *AuthController) LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		badRequest(w, "invalid body")
+		utils.BadRequest(w, "invalid body")
 		return
 	}
 
@@ -117,13 +121,13 @@ func (c *AuthController) LogIn(w http.ResponseWriter, r *http.Request) {
 
 	c.setSession(w, session)
 
-	writeJSON(w, http.StatusOK, session.User)
+	utils.WriteJSON(w, http.StatusOK, session.User)
 }
 
 func (c *AuthController) Refresh(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(utils.RefreshCookieName)
 	if err != nil {
-		unauthorized(w)
+		utils.Unauthorized(w)
 		return
 	}
 

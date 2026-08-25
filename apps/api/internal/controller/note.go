@@ -27,12 +27,12 @@ func (c *NoteController) CreateNote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		badRequest(w, "invalid body")
+		utils.BadRequest(w, "invalid body")
 		return
 	}
 
 	if strings.TrimSpace(body.WorkspaceID) == "" {
-		badRequest(w, "workspaceId is required")
+		utils.BadRequest(w, "workspaceId is required")
 		return
 	}
 
@@ -47,7 +47,7 @@ func (c *NoteController) CreateNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, note)
+	utils.WriteJSON(w, http.StatusCreated, note)
 }
 
 func (c *NoteController) DeleteNote(w http.ResponseWriter, r *http.Request) {

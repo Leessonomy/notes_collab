@@ -26,7 +26,7 @@ func (c *WorkspaceController) ListWorkspacesWithNotes(w http.ResponseWriter, r *
 		return
 	}
 
-	writeJSON(w, http.StatusOK, data)
+	utils.WriteJSON(w, http.StatusOK, data)
 }
 
 func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Req
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		badRequest(w, "invalid body")
+		utils.BadRequest(w, "invalid body")
 		return
 	}
 
@@ -50,7 +50,7 @@ func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, workspace)
+	utils.WriteJSON(w, http.StatusCreated, workspace)
 }
 
 func (c *WorkspaceController) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
