@@ -64,11 +64,14 @@ func (r *WorkspaceRepo) GetByOwner(ctx context.Context, ownerID string) ([]domai
 	return data, nil
 }
 
-func (r *WorkspaceRepo) Delete(ctx context.Context, workspaceID string) error {
-	_, err := r.db.Exec(ctx, `DELETE FROM workspaces WHERE id = $1`, workspaceID)
-
+func (r *WorkspaceRepo) Delete(ctx context.Context, workspaceID, ownerID string) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM workspaces WHERE id = $1 AND owner_id = $2`, workspaceID, ownerID)
 	if err != nil {
 		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return domain.ErrWorkspaceNotFound
 	}
 
 	return nil

@@ -48,6 +48,7 @@ func createHandler(cfg *config, pool *pgxpool.Pool) http.Handler {
 
 	mux.Handle("GET /api/workspaces", protectedAuth(workspaceCtrl.ListWorkspacesWithNotes))
 	mux.Handle("POST /api/workspaces", protectedAuth(workspaceCtrl.CreateWorkspace))
+	mux.Handle("DELETE /api/workspaces/{id}", protectedAuth(workspaceCtrl.DeleteWorkspace))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", cfg.CORSOrigin)

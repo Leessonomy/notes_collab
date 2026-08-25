@@ -12,7 +12,7 @@ import (
 type WorkspaceRepo interface {
 	Create(ctx context.Context, w domain.Workspace) error
 	GetByOwner(ctx context.Context, ownerID string) ([]domain.Workspace, error)
-	Delete(ctx context.Context, workspaceID string) error
+	Delete(ctx context.Context, workspaceID, ownerID string) error
 }
 
 type Workspace struct {
@@ -73,8 +73,6 @@ func (w *Workspace) GetWithNotes(ctx context.Context, ownerID string) ([]dto.Wor
 	return result, nil
 }
 
-func (w *Workspace) Delete(ctx context.Context, workspaceID string) error {
-	err := w.workspaceRepo.Delete(ctx, workspaceID)
-
-	return err
+func (w *Workspace) Delete(ctx context.Context, workspaceID, ownerID string) error {
+	return w.workspaceRepo.Delete(ctx, workspaceID, ownerID)
 }

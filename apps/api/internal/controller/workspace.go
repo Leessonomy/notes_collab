@@ -54,9 +54,10 @@ func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Req
 }
 
 func (c *WorkspaceController) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
+	userID := utils.UserIDFromContext(r.Context())
 	id := r.PathValue("id")
 
-	err := c.workspaceUseCase.Delete(r.Context(), id)
+	err := c.workspaceUseCase.Delete(r.Context(), id, userID)
 
 	if err != nil {
 		domainError(w, err)

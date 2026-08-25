@@ -5,6 +5,7 @@ import "errors"
 var (
 	ErrNoteByWorkspaceNotFound = errors.New("not found such note by workspace id")
 	ErrNoteNotFound            = errors.New("note not found")
+	ErrWorkspaceNotFound       = errors.New("workspace not found")
 
 	ErrUserNotFound       = errors.New("user not found")
 	ErrEmailTaken         = errors.New("email already taken")
