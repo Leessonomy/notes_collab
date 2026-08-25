@@ -11,7 +11,7 @@ import (
 
 type WorkspaceRepo interface {
 	Create(ctx context.Context, w domain.Workspace) error
-	GetByOwner(ctx context.Context, ownerID string) ([]domain.Workspace, error)
+	ListByOwner(ctx context.Context, ownerID string) ([]domain.Workspace, error)
 	Delete(ctx context.Context, workspaceID, ownerID string) error
 }
 
@@ -42,14 +42,14 @@ func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) 
 	return workspace, nil
 }
 
-func (w *Workspace) GetWithNotes(ctx context.Context, ownerID string) ([]dto.WorkspaceWithNotes, error) {
-	workspaces, err := w.workspaceRepo.GetByOwner(ctx, ownerID)
+func (w *Workspace) ListWithNotes(ctx context.Context, ownerID string) ([]dto.WorkspaceWithNotes, error) {
+	workspaces, err := w.workspaceRepo.ListByOwner(ctx, ownerID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	notes, err := w.noteRepo.GetByOwner(ctx, ownerID)
+	notes, err := w.noteRepo.ListByOwner(ctx, ownerID)
 
 	if err != nil {
 		return nil, err

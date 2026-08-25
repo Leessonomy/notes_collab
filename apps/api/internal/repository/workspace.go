@@ -31,7 +31,7 @@ func (r *WorkspaceRepo) Create(ctx context.Context, w domain.Workspace) error {
 	return err
 }
 
-func (r *WorkspaceRepo) GetByOwner(ctx context.Context, ownerID string) ([]domain.Workspace, error) {
+func (r *WorkspaceRepo) ListByOwner(ctx context.Context, ownerID string) ([]domain.Workspace, error) {
 	rows, err := r.db.Query(ctx, `
         SELECT id, name, owner_id, created_at, updated_at
         FROM workspaces

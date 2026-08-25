@@ -19,7 +19,7 @@ func NewWorkspaceController(workspaceUC *usecase.Workspace) *WorkspaceController
 func (c *WorkspaceController) ListWorkspacesWithNotes(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 
-	data, err := c.workspaceUseCase.GetWithNotes(r.Context(), userID)
+	data, err := c.workspaceUseCase.ListWithNotes(r.Context(), userID)
 
 	if err != nil {
 		domainError(w, err)

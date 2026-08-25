@@ -62,7 +62,7 @@ func scanNotes(rows pgx.Rows) ([]domain.Note, error) {
 	return data, nil
 }
 
-func (r *NoteRepo) GetByOwner(ctx context.Context, ownerID string) ([]domain.Note, error) {
+func (r *NoteRepo) ListByOwner(ctx context.Context, ownerID string) ([]domain.Note, error) {
 	rows, err := r.db.Query(ctx, `
         SELECT id, workspace_id, title, content, owner_id, created_at, updated_at
         FROM notes

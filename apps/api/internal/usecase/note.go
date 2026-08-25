@@ -11,7 +11,7 @@ import (
 
 type NoteRepo interface {
 	Create(ctx context.Context, n domain.Note) error
-	GetByOwner(ctx context.Context, ownerID string) ([]domain.Note, error)
+	ListByOwner(ctx context.Context, ownerID string) ([]domain.Note, error)
 	Delete(ctx context.Context, noteID, ownerID string) error
 }
 
