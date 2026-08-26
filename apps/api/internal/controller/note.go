@@ -50,6 +50,20 @@ func (c *NoteController) CreateNote(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusCreated, note)
 }
 
+func (c *NoteController) GetByID(w http.ResponseWriter, r *http.Request) {
+	userID := utils.UserIDFromContext(r.Context())
+	id := r.PathValue("id")
+	note, err := c.noteUseCase.GetByID(r.Context(), id, userID)
+
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, note)
+
+}
+
 func (c *NoteController) DeleteNote(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 	id := r.PathValue("id")

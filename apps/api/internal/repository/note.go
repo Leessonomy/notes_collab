@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"notes-collab-api/internal/domain"
 
 	"github.com/jackc/pgx/v5"
@@ -68,10 +69,37 @@ func (r *NoteRepo) ListByOwner(ctx context.Context, ownerID string) ([]domain.No
         FROM notes
         WHERE owner_id = $1
     `, ownerID)
+
 	if err != nil {
 		return nil, err
 	}
 	return scanNotes(rows)
+}
+
+func (r *NoteRepo) GetByID(ctx context.Context, noteID, ownerID string) (domain.Note, error) {
+	var n domain.Note
+
+	err := r.db.QueryRow(ctx, `
+        SELECT id, workspace_id, title, content, owner_id, created_at, updated_at
+        FROM notes
+        WHERE id = $1 AND owner_id = $2
+    `, noteID, ownerID).Scan(
+		&n.ID,
+		&n.WorkspaceID,
+		&n.Title,
+		&n.Content,
+		&n.OwnerID,
+		&n.CreatedAt,
+		&n.UpdatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.Note{}, domain.ErrNoteNotFound
+	}
+	if err != nil {
+		return domain.Note{}, err
+	}
+
+	return n, nil
 }
 
 func (r *NoteRepo) Delete(ctx context.Context, noteID, ownerID string) error {

@@ -13,6 +13,7 @@ type NoteRepo interface {
 	Create(ctx context.Context, n domain.Note) error
 	ListByOwner(ctx context.Context, ownerID string) ([]domain.Note, error)
 	Delete(ctx context.Context, noteID, ownerID string) error
+	GetByID(ctx context.Context, noteID, ownerID string) (domain.Note, error)
 }
 
 type Note struct {
@@ -21,6 +22,10 @@ type Note struct {
 
 func NewNote(noteRepo NoteRepo) *Note {
 	return &Note{noteRepo: noteRepo}
+}
+
+func (n *Note) GetByID(ctx context.Context, noteID, ownerID string) (domain.Note, error) {
+	return n.noteRepo.GetByID(ctx, noteID, ownerID)
 }
 
 func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.Note, error) {
