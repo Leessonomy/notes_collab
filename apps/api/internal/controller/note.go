@@ -64,6 +64,34 @@ func (c *NoteController) GetByID(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (c *NoteController) UpdateNote(w http.ResponseWriter, r *http.Request) {
+	userID := utils.UserIDFromContext(r.Context())
+	id := r.PathValue("id")
+
+	var body struct {
+		Title   string `json:"title"`
+		Content string `json:"content"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		utils.BadRequest(w, "invalid body")
+		return
+	}
+
+	note, err := c.noteUseCase.Update(r.Context(), dto.UpdateNoteInput{
+		NoteID:  id,
+		OwnerID: userID,
+		Title:   body.Title,
+		Content: body.Content,
+	})
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, note)
+}
+
 func (c *NoteController) DeleteNote(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 	id := r.PathValue("id")

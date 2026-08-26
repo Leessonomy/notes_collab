@@ -6,3 +6,10 @@ type CreateNoteInput struct {
 	Content     string
 	OwnerID     string
 }
+
+type UpdateNoteInput struct {
+	NoteID  string
+	OwnerID string
+	Title   string
+	Content string
+}

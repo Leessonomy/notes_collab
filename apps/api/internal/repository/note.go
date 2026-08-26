@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"notes-collab-api/internal/domain"
 
 	"github.com/jackc/pgx/v5"
@@ -17,28 +16,27 @@ func NewNoteRepo(db *pgxpool.Pool) *NoteRepo {
 	return &NoteRepo{db: db}
 }
 
-func (r *NoteRepo) Create(ctx context.Context, n domain.Note) error {
-	_, err := r.db.Exec(ctx, `
-        INSERT INTO notes (
-            id, workspace_id, title, content, owner_id, created_at, updated_at
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-    `,
-		n.ID,
-		n.WorkspaceID,
-		n.Title,
-		n.Content,
-		n.OwnerID,
-		n.CreatedAt,
-		n.UpdatedAt,
-	)
+func scanNote(row pgx.Row) (domain.Note, error) {
+	var n domain.Note
 
-	return err
+	err := row.Scan(
+		&n.ID,
+		&n.WorkspaceID,
+		&n.Title,
+		&n.Content,
+		&n.OwnerID,
+		&n.CreatedAt,
+		&n.UpdatedAt,
+	)
+	if err != nil {
+		return domain.Note{}, domain.ErrNoteNotFound
+	}
+
+	return n, nil
 }
 
 func scanNotes(rows pgx.Rows) ([]domain.Note, error) {
 	defer rows.Close()
-
 	data := make([]domain.Note, 0)
 	for rows.Next() {
 		var n domain.Note
@@ -63,6 +61,36 @@ func scanNotes(rows pgx.Rows) ([]domain.Note, error) {
 	return data, nil
 }
 
+func (r *NoteRepo) Create(ctx context.Context, n domain.Note) error {
+	_, err := r.db.Exec(ctx, `
+        INSERT INTO notes (
+            id, workspace_id, title, content, owner_id, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `,
+		n.ID,
+		n.WorkspaceID,
+		n.Title,
+		n.Content,
+		n.OwnerID,
+		n.CreatedAt,
+		n.UpdatedAt,
+	)
+
+	return err
+}
+
+func (r *NoteRepo) Update(ctx context.Context, noteID, ownerID, title, content string) (domain.Note, error) {
+	row := r.db.QueryRow(ctx, `
+        UPDATE notes
+        SET title = $1, content = $2, updated_at = NOW()
+        WHERE id = $3 AND owner_id = $4
+        RETURNING id, workspace_id, title, content, owner_id, created_at, updated_at
+    `, title, content, noteID, ownerID)
+
+	return scanNote(row)
+}
+
 func (r *NoteRepo) ListByOwner(ctx context.Context, ownerID string) ([]domain.Note, error) {
 	rows, err := r.db.Query(ctx, `
         SELECT id, workspace_id, title, content, owner_id, created_at, updated_at
@@ -77,29 +105,13 @@ func (r *NoteRepo) ListByOwner(ctx context.Context, ownerID string) ([]domain.No
 }
 
 func (r *NoteRepo) GetByID(ctx context.Context, noteID, ownerID string) (domain.Note, error) {
-	var n domain.Note
-
-	err := r.db.QueryRow(ctx, `
+	row := r.db.QueryRow(ctx, `
         SELECT id, workspace_id, title, content, owner_id, created_at, updated_at
         FROM notes
         WHERE id = $1 AND owner_id = $2
-    `, noteID, ownerID).Scan(
-		&n.ID,
-		&n.WorkspaceID,
-		&n.Title,
-		&n.Content,
-		&n.OwnerID,
-		&n.CreatedAt,
-		&n.UpdatedAt,
-	)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return domain.Note{}, domain.ErrNoteNotFound
-	}
-	if err != nil {
-		return domain.Note{}, err
-	}
+    `, noteID, ownerID)
 
-	return n, nil
+	return scanNote(row)
 }
 
 func (r *NoteRepo) Delete(ctx context.Context, noteID, ownerID string) error {
