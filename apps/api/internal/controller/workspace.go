@@ -53,6 +53,32 @@ func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Req
 	utils.WriteJSON(w, http.StatusCreated, workspace)
 }
 
+func (c *WorkspaceController) UpdateWorkspace(w http.ResponseWriter, r *http.Request) {
+	userID := utils.UserIDFromContext(r.Context())
+	id := r.PathValue("id")
+
+	var body struct {
+		Name string `json:"name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		utils.BadRequest(w, "invalid body")
+		return
+	}
+
+	workspace, err := c.workspaceUseCase.Update(r.Context(), dto.UpdateWorkspaceInput{
+		WorkspaceID: id,
+		OwnerID:     userID,
+		Name:        body.Name,
+	})
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, workspace)
+}
+
 func (c *WorkspaceController) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 	userID := utils.UserIDFromContext(r.Context())
 	id := r.PathValue("id")

@@ -42,13 +42,14 @@ func createHandler(cfg *config, pool *pgxpool.Pool) http.Handler {
 
 	mux.Handle("GET /api/auth/me", protectedAuth(authCtrl.GetMe))
 
-	mux.Handle("POST /api/notes", protectedAuth(noteCtrl.CreateNote))
 	mux.Handle("GET /api/notes/{id}", protectedAuth(noteCtrl.GetByID))
+	mux.Handle("POST /api/notes", protectedAuth(noteCtrl.CreateNote))
 	mux.Handle("PATCH /api/notes/{id}", protectedAuth(noteCtrl.UpdateNote))
 	mux.Handle("DELETE /api/notes/{id}", protectedAuth(noteCtrl.DeleteNote))
 
 	mux.Handle("GET /api/workspaces", protectedAuth(workspaceCtrl.ListWorkspacesWithNotes))
 	mux.Handle("POST /api/workspaces", protectedAuth(workspaceCtrl.CreateWorkspace))
+	mux.Handle("PATCH /api/workspaces/{id}", protectedAuth(workspaceCtrl.UpdateWorkspace))
 	mux.Handle("DELETE /api/workspaces/{id}", protectedAuth(workspaceCtrl.DeleteWorkspace))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -12,6 +12,7 @@ import (
 type WorkspaceRepo interface {
 	Create(ctx context.Context, w domain.Workspace) error
 	ListByOwner(ctx context.Context, ownerID string) ([]domain.Workspace, error)
+	Update(ctx context.Context, workspaceID, ownerID, name string) (domain.Workspace, error)
 	Delete(ctx context.Context, workspaceID, ownerID string) error
 }
 
@@ -71,6 +72,10 @@ func (w *Workspace) ListWithNotes(ctx context.Context, ownerID string) ([]dto.Wo
 	}
 
 	return result, nil
+}
+
+func (w *Workspace) Update(ctx context.Context, input dto.UpdateWorkspaceInput) (domain.Workspace, error) {
+	return w.workspaceRepo.Update(ctx, input.WorkspaceID, input.OwnerID, input.Name)
 }
 
 func (w *Workspace) Delete(ctx context.Context, workspaceID, ownerID string) error {

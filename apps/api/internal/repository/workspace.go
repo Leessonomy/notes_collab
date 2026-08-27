@@ -4,6 +4,7 @@ import (
 	"context"
 	"notes-collab-api/internal/domain"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -13,6 +14,23 @@ type WorkspaceRepo struct {
 
 func NewWorkspaceRepo(db *pgxpool.Pool) *WorkspaceRepo {
 	return &WorkspaceRepo{db: db}
+}
+
+func scanWorkspace(row pgx.Row) (domain.Workspace, error) {
+	var w domain.Workspace
+
+	err := row.Scan(
+		&w.ID,
+		&w.Name,
+		&w.OwnerID,
+		&w.CreatedAt,
+		&w.UpdatedAt,
+	)
+	if err != nil {
+		return domain.Workspace{}, domain.ErrWorkspaceNotFound
+	}
+
+	return w, nil
 }
 
 func (r *WorkspaceRepo) Create(ctx context.Context, w domain.Workspace) error {
@@ -62,6 +80,17 @@ func (r *WorkspaceRepo) ListByOwner(ctx context.Context, ownerID string) ([]doma
 	}
 
 	return data, nil
+}
+
+func (r *WorkspaceRepo) Update(ctx context.Context, workspaceID, ownerID, name string) (domain.Workspace, error) {
+	row := r.db.QueryRow(ctx, `
+        UPDATE workspaces
+        SET name = $1, updated_at = NOW()
+        WHERE id = $2 AND owner_id = $3
+        RETURNING id, name, owner_id, created_at, updated_at
+    `, name, workspaceID, ownerID)
+
+	return scanWorkspace(row)
 }
 
 func (r *WorkspaceRepo) Delete(ctx context.Context, workspaceID, ownerID string) error {

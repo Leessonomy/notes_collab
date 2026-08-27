@@ -7,6 +7,12 @@ type CreateWorkspaceInput struct {
 	OwnerID string
 }
 
+type UpdateWorkspaceInput struct {
+	WorkspaceID string
+	OwnerID     string
+	Name        string
+}
+
 type WorkspaceWithNotes struct {
 	domain.Workspace
 	Notes []domain.Note `json:"notes"`
