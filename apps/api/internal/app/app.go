@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	dbconfig "notes-collab-api/config"
 	"time"
 )
 
@@ -14,15 +15,15 @@ func Run(ctx context.Context) error {
 		return err
 	}
 
+	if err := dbconfig.Migrate(ctx, cfg.DatabaseURL); err != nil {
+		return err
+	}
+
 	pool, err := createPostgres(ctx, cfg.DatabaseURL)
 	if err != nil {
 		return err
 	}
 	defer pool.Close()
-
-	if err := migrate(ctx, pool); err != nil {
-		return err
-	}
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
