@@ -4,16 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/mail"
 	"notes-collab-api/internal/domain"
 	"notes-collab-api/internal/dto"
 	"notes-collab-api/internal/usecase"
 	"notes-collab-api/internal/utils"
-	"strings"
 	"time"
 )
-
-const minPasswordLength = 8
 
 type AuthController struct {
 	authUseCase   *usecase.Auth
@@ -25,25 +21,6 @@ func NewAuthController(authUC *usecase.Auth, isSecure bool) *AuthController {
 		authUseCase:   authUC,
 		secureCookies: isSecure,
 	}
-}
-
-type SignUpBody struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-func (req SignUpBody) validate() error {
-	if len(req.Name) == 0 {
-		return errors.New("name is required")
-	}
-	if _, err := mail.ParseAddress(req.Email); err != nil {
-		return errors.New("invalid email")
-	}
-	if len(req.Password) < minPasswordLength {
-		return errors.New("password is too short")
-	}
-	return nil
 }
 
 func (c *AuthController) setSession(w http.ResponseWriter, session dto.SessionOutput) {
@@ -70,23 +47,13 @@ func (c *AuthController) GetMe(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
-	var body SignUpBody
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	var input dto.SignUpInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		utils.BadRequest(w, "invalid body")
 		return
 	}
-	body.Email = strings.ToLower(strings.TrimSpace(body.Email))
 
-	if err := body.validate(); err != nil {
-		utils.BadRequest(w, err.Error())
-		return
-	}
-
-	session, err := c.authUseCase.SignUp(r.Context(), dto.SignUpInput{
-		Name:     body.Name,
-		Email:    body.Email,
-		Password: body.Password,
-	})
+	session, err := c.authUseCase.SignUp(r.Context(), input)
 	if err != nil {
 		domainError(w, err)
 		return
@@ -98,22 +65,13 @@ func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *AuthController) LogIn(w http.ResponseWriter, r *http.Request) {
-	var body struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	var input dto.LogInInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		utils.BadRequest(w, "invalid body")
 		return
 	}
 
-	body.Email = strings.ToLower(strings.TrimSpace(body.Email))
-
-	session, err := c.authUseCase.LogIn(r.Context(), dto.LogInInput{
-		Email:    body.Email,
-		Password: body.Password,
-	})
+	session, err := c.authUseCase.LogIn(r.Context(), input)
 	if err != nil {
 		domainError(w, err)
 		return

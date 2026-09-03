@@ -6,14 +6,14 @@ import (
 )
 
 type SignUpInput struct {
-	Name     string
-	Email    string
-	Password string
+	Name     string `json:"name" validate:"required,min=2"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8"`
 }
 
 type LogInInput struct {
-	Email    string
-	Password string
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
 
 type SessionOutput struct {

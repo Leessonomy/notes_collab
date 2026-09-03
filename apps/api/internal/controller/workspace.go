@@ -30,21 +30,16 @@ func (c *WorkspaceController) ListWorkspacesWithNotes(w http.ResponseWriter, r *
 }
 
 func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Request) {
-	userID := utils.UserIDFromContext(r.Context())
-
-	var body struct {
-		Name string `json:"name"`
+	input := dto.CreateWorkspaceInput{
+		OwnerID: utils.UserIDFromContext(r.Context()),
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		utils.BadRequest(w, "invalid body")
 		return
 	}
 
-	workspace, err := c.workspaceUseCase.Create(r.Context(), dto.CreateWorkspaceInput{
-		Name:    body.Name,
-		OwnerID: userID,
-	})
+	workspace, err := c.workspaceUseCase.Create(r.Context(), input)
 	if err != nil {
 		domainError(w, err)
 		return
@@ -54,23 +49,17 @@ func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Req
 }
 
 func (c *WorkspaceController) UpdateWorkspace(w http.ResponseWriter, r *http.Request) {
-	userID := utils.UserIDFromContext(r.Context())
-	id := r.PathValue("id")
-
-	var body struct {
-		Name string `json:"name"`
+	input := dto.UpdateWorkspaceInput{
+		WorkspaceID: r.PathValue("id"),
+		OwnerID:     utils.UserIDFromContext(r.Context()),
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		utils.BadRequest(w, "invalid body")
 		return
 	}
 
-	workspace, err := c.workspaceUseCase.Update(r.Context(), dto.UpdateWorkspaceInput{
-		WorkspaceID: id,
-		OwnerID:     userID,
-		Name:        body.Name,
-	})
+	workspace, err := c.workspaceUseCase.Update(r.Context(), input)
 	if err != nil {
 		domainError(w, err)
 		return

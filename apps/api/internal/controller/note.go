@@ -6,7 +6,6 @@ import (
 	"notes-collab-api/internal/dto"
 	"notes-collab-api/internal/usecase"
 	"notes-collab-api/internal/utils"
-	"strings"
 )
 
 type NoteController struct {
@@ -18,30 +17,16 @@ func NewNoteController(noteUC *usecase.Note) *NoteController {
 }
 
 func (c *NoteController) CreateNote(w http.ResponseWriter, r *http.Request) {
-	userID := utils.UserIDFromContext(r.Context())
-
-	var body struct {
-		Title       string `json:"title"`
-		Content     string `json:"content"`
-		WorkspaceID string `json:"workspaceId"`
+	input := dto.CreateNoteInput{
+		OwnerID: utils.UserIDFromContext(r.Context()),
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		utils.BadRequest(w, "invalid body")
 		return
 	}
 
-	if strings.TrimSpace(body.WorkspaceID) == "" {
-		utils.BadRequest(w, "workspaceId is required")
-		return
-	}
-
-	note, err := c.noteUseCase.Create(r.Context(), dto.CreateNoteInput{
-		WorkspaceID: body.WorkspaceID,
-		Title:       body.Title,
-		Content:     body.Content,
-		OwnerID:     userID,
-	})
+	note, err := c.noteUseCase.Create(r.Context(), input)
 	if err != nil {
 		domainError(w, err)
 		return
@@ -65,25 +50,17 @@ func (c *NoteController) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *NoteController) UpdateNote(w http.ResponseWriter, r *http.Request) {
-	userID := utils.UserIDFromContext(r.Context())
-	id := r.PathValue("id")
-
-	var body struct {
-		Title   string `json:"title"`
-		Content string `json:"content"`
+	input := dto.UpdateNoteInput{
+		NoteID:  r.PathValue("id"),
+		OwnerID: utils.UserIDFromContext(r.Context()),
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		utils.BadRequest(w, "invalid body")
 		return
 	}
 
-	note, err := c.noteUseCase.Update(r.Context(), dto.UpdateNoteInput{
-		NoteID:  id,
-		OwnerID: userID,
-		Title:   body.Title,
-		Content: body.Content,
-	})
+	note, err := c.noteUseCase.Update(r.Context(), input)
 	if err != nil {
 		domainError(w, err)
 		return

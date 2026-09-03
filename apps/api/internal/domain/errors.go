@@ -3,6 +3,8 @@ package domain
 import "errors"
 
 var (
+	ErrValidation = errors.New("validation error")
+
 	ErrNoteByWorkspaceNotFound = errors.New("not found such note by workspace id")
 	ErrNoteNotFound            = errors.New("note not found")
 	ErrWorkspaceNotFound       = errors.New("workspace not found")

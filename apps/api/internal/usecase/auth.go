@@ -51,6 +51,12 @@ func (a *Auth) GetUserSession(ctx context.Context, userID string) (*domain.User,
 func (a *Auth) SignUp(ctx context.Context, input dto.SignUpInput) (dto.SessionOutput, error) {
 	var output dto.SessionOutput
 
+	input.Email = uniqeEmail(input.Email)
+
+	if err := validateInput(input); err != nil {
+		return output, err
+	}
+
 	_, err := a.userRepo.GetByEmail(ctx, input.Email)
 	if err == nil {
 		return output, domain.ErrEmailTaken
@@ -88,6 +94,12 @@ func (a *Auth) SignUp(ctx context.Context, input dto.SignUpInput) (dto.SessionOu
 
 func (a *Auth) LogIn(ctx context.Context, input dto.LogInInput) (dto.SessionOutput, error) {
 	var output dto.SessionOutput
+
+	input.Email = uniqeEmail(input.Email)
+
+	if err := validateInput(input); err != nil {
+		return output, err
+	}
 
 	user, err := a.userRepo.GetByEmail(ctx, input.Email)
 	if err != nil || !utils.CheckPassword(user.Password, input.Password) {

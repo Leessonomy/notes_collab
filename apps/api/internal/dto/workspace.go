@@ -3,14 +3,14 @@ package dto
 import "notes-collab-api/internal/domain"
 
 type CreateWorkspaceInput struct {
-	Name    string
-	OwnerID string
+	OwnerID string `json:"-" validate:"required"`
+	Name    string `json:"name" validate:"required,max=100"`
 }
 
 type UpdateWorkspaceInput struct {
-	WorkspaceID string
-	OwnerID     string
-	Name        string
+	WorkspaceID string `json:"-" validate:"required"`
+	OwnerID     string `json:"-" validate:"required"`
+	Name        string `json:"name" validate:"required,max=100"`
 }
 
 type WorkspaceWithNotes struct {
