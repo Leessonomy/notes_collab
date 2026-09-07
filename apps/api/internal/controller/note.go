@@ -32,7 +32,15 @@ func (c *NoteController) CreateNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, note)
+	utils.WriteJSON(w, http.StatusCreated, dto.NoteOutput{
+		ID:          note.ID,
+		WorkspaceID: note.WorkspaceID,
+		Title:       note.Title,
+		Content:     note.Content,
+		OwnerID:     note.OwnerID,
+		CreatedAt:   note.CreatedAt,
+		UpdatedAt:   note.UpdatedAt,
+	})
 }
 
 func (c *NoteController) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +53,15 @@ func (c *NoteController) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, note)
+	utils.WriteJSON(w, http.StatusOK, dto.NoteOutput{
+		ID:          note.ID,
+		WorkspaceID: note.WorkspaceID,
+		Title:       note.Title,
+		Content:     note.Content,
+		OwnerID:     note.OwnerID,
+		CreatedAt:   note.CreatedAt,
+		UpdatedAt:   note.UpdatedAt,
+	})
 
 }
 
@@ -66,7 +82,15 @@ func (c *NoteController) UpdateNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, note)
+	utils.WriteJSON(w, http.StatusOK, dto.NoteOutput{
+		ID:          note.ID,
+		WorkspaceID: note.WorkspaceID,
+		Title:       note.Title,
+		Content:     note.Content,
+		OwnerID:     note.OwnerID,
+		CreatedAt:   note.CreatedAt,
+		UpdatedAt:   note.UpdatedAt,
+	})
 }
 
 func (c *NoteController) DeleteNote(w http.ResponseWriter, r *http.Request) {

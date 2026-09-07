@@ -63,15 +63,29 @@ func (w *Workspace) ListWithNotes(ctx context.Context, ownerID string) ([]dto.Wo
 	result := make([]dto.WorkspaceWithNotes, 0, len(workspaces))
 
 	for _, workspace := range workspaces {
-		list := make([]domain.Note, 0)
+		list := make([]dto.NoteOutput, 0)
 		for _, note := range notes {
 			if note.WorkspaceID == workspace.ID {
-				list = append(list, note)
+				list = append(list, dto.NoteOutput{
+					ID:          note.ID,
+					WorkspaceID: note.WorkspaceID,
+					Title:       note.Title,
+					Content:     note.Content,
+					OwnerID:     note.OwnerID,
+					CreatedAt:   note.CreatedAt,
+					UpdatedAt:   note.UpdatedAt,
+				})
 			}
 		}
 		result = append(result, dto.WorkspaceWithNotes{
-			Workspace: workspace,
-			Notes:     list,
+			WorkspaceOutput: dto.WorkspaceOutput{
+				ID:        workspace.ID,
+				Name:      workspace.Name,
+				OwnerID:   workspace.OwnerID,
+				CreatedAt: workspace.CreatedAt,
+				UpdatedAt: workspace.UpdatedAt,
+			},
+			Notes: list,
 		})
 	}
 

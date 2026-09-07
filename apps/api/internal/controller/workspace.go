@@ -45,7 +45,13 @@ func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, workspace)
+	utils.WriteJSON(w, http.StatusCreated, dto.WorkspaceOutput{
+		ID:        workspace.ID,
+		Name:      workspace.Name,
+		OwnerID:   workspace.OwnerID,
+		CreatedAt: workspace.CreatedAt,
+		UpdatedAt: workspace.UpdatedAt,
+	})
 }
 
 func (c *WorkspaceController) UpdateWorkspace(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +71,13 @@ func (c *WorkspaceController) UpdateWorkspace(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, workspace)
+	utils.WriteJSON(w, http.StatusOK, dto.WorkspaceOutput{
+		ID:        workspace.ID,
+		Name:      workspace.Name,
+		OwnerID:   workspace.OwnerID,
+		CreatedAt: workspace.CreatedAt,
+		UpdatedAt: workspace.UpdatedAt,
+	})
 }
 
 func (c *WorkspaceController) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,6 @@
 package dto
 
-import "notes-collab-api/internal/domain"
+import "time"
 
 type CreateWorkspaceInput struct {
 	OwnerID string `json:"-" validate:"required"`
@@ -13,7 +13,15 @@ type UpdateWorkspaceInput struct {
 	Name        string `json:"name" mod:"trim" validate:"required,max=100"`
 }
 
+type WorkspaceOutput struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	OwnerID   string    `json:"ownerId"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
 type WorkspaceWithNotes struct {
-	domain.Workspace
-	Notes []domain.Note `json:"notes"`
+	WorkspaceOutput
+	Notes []NoteOutput `json:"notes"`
 }

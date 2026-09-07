@@ -43,7 +43,11 @@ func (c *AuthController) GetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, user)
+	utils.WriteJSON(w, http.StatusOK, dto.UserOutput{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+	})
 }
 
 func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +65,11 @@ func (c *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	c.setSession(w, session)
 
-	utils.WriteJSON(w, http.StatusCreated, session.User)
+	utils.WriteJSON(w, http.StatusCreated, dto.UserOutput{
+		ID:    session.User.ID,
+		Name:  session.User.Name,
+		Email: session.User.Email,
+	})
 }
 
 func (c *AuthController) LogIn(w http.ResponseWriter, r *http.Request) {
@@ -79,7 +87,11 @@ func (c *AuthController) LogIn(w http.ResponseWriter, r *http.Request) {
 
 	c.setSession(w, session)
 
-	utils.WriteJSON(w, http.StatusOK, session.User)
+	utils.WriteJSON(w, http.StatusOK, dto.UserOutput{
+		ID:    session.User.ID,
+		Name:  session.User.Name,
+		Email: session.User.Email,
+	})
 }
 
 func (c *AuthController) Refresh(w http.ResponseWriter, r *http.Request) {
