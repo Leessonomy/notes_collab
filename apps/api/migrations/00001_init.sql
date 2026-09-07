@@ -3,10 +3,11 @@
 CREATE TABLE users (
     id text PRIMARY KEY,
     name text NOT NULL,
-    email text NOT NULL UNIQUE,
+    email text NOT NULL,
     password text NOT NULL,
     created_at timestamptz NOT NULL
 );
+CREATE UNIQUE INDEX users_email_lower_idx ON users (lower(email));
 
 CREATE TABLE refresh_tokens (
     token text PRIMARY KEY,

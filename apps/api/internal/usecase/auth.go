@@ -6,6 +6,7 @@ import (
 	"notes-collab-api/internal/domain"
 	"notes-collab-api/internal/dto"
 	"notes-collab-api/internal/utils"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -51,7 +52,7 @@ func (a *Auth) GetUserSession(ctx context.Context, userID string) (*domain.User,
 func (a *Auth) SignUp(ctx context.Context, input dto.SignUpInput) (dto.SessionOutput, error) {
 	var output dto.SessionOutput
 
-	input.Email = uniqeEmail(input.Email)
+	input.Email = strings.TrimSpace(input.Email)
 
 	if err := validateInput(input); err != nil {
 		return output, err
@@ -95,7 +96,7 @@ func (a *Auth) SignUp(ctx context.Context, input dto.SignUpInput) (dto.SessionOu
 func (a *Auth) LogIn(ctx context.Context, input dto.LogInInput) (dto.SessionOutput, error) {
 	var output dto.SessionOutput
 
-	input.Email = uniqeEmail(input.Email)
+	input.Email = strings.TrimSpace(input.Email)
 
 	if err := validateInput(input); err != nil {
 		return output, err

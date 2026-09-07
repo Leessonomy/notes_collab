@@ -44,7 +44,7 @@ func (r *UserRepo) scanOne(row pgx.Row) (*domain.User, error) {
 
 func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	return r.scanOne(r.db.QueryRow(ctx,
-		`SELECT id, name, email, password FROM users WHERE email = $1`,
+		`SELECT id, name, email, password FROM users WHERE lower(email) = lower($1)`,
 		email,
 	))
 }
