@@ -30,7 +30,7 @@ func (n *Note) GetByID(ctx context.Context, noteID, ownerID string) (domain.Note
 }
 
 func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.Note, error) {
-	if err := validateInput(input); err != nil {
+	if err := validateInput(&input); err != nil {
 		return domain.Note{}, err
 	}
 
@@ -54,7 +54,7 @@ func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.No
 }
 
 func (n *Note) Update(ctx context.Context, input dto.UpdateNoteInput) (domain.Note, error) {
-	if err := validateInput(input); err != nil {
+	if err := validateInput(&input); err != nil {
 		return domain.Note{}, err
 	}
 

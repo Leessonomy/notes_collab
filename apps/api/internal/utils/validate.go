@@ -1,15 +1,24 @@
 package utils
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 
+	"github.com/go-playground/mold/v4/modifiers"
 	"github.com/go-playground/validator/v10"
 )
 
-var validate = newValidator()
+var (
+	validate = newValidator()
+	conform  = modifiers.New()
+)
+
+func ConformStruct(v any) error {
+	return conform.Struct(context.Background(), v)
+}
 
 func newValidator() *validator.Validate {
 	v := validator.New()

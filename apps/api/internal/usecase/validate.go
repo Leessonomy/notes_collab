@@ -7,6 +7,9 @@ import (
 )
 
 func validateInput(input any) error {
+	if err := utils.ConformStruct(input); err != nil {
+		return fmt.Errorf("%w: %s", domain.ErrValidation, err)
+	}
 	if err := utils.ValidateStruct(input); err != nil {
 		return fmt.Errorf("%w: %s", domain.ErrValidation, err)
 	}

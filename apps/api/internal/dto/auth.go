@@ -6,13 +6,13 @@ import (
 )
 
 type SignUpInput struct {
-	Name     string `json:"name" validate:"required,min=2"`
-	Email    string `json:"email" validate:"required,email"`
+	Name     string `json:"name" mod:"trim" validate:"required,min=2"`
+	Email    string `json:"email" mod:"trim" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8"`
 }
 
 type LogInInput struct {
-	Email    string `json:"email" validate:"required,email"`
+	Email    string `json:"email" mod:"trim" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
 

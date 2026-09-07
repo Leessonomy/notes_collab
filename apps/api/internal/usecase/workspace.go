@@ -26,7 +26,7 @@ func NewWorkspace(workspaceRepo WorkspaceRepo, noteRepo NoteRepo) *Workspace {
 }
 
 func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) (domain.Workspace, error) {
-	if err := validateInput(input); err != nil {
+	if err := validateInput(&input); err != nil {
 		return domain.Workspace{}, err
 	}
 
@@ -79,7 +79,7 @@ func (w *Workspace) ListWithNotes(ctx context.Context, ownerID string) ([]dto.Wo
 }
 
 func (w *Workspace) Update(ctx context.Context, input dto.UpdateWorkspaceInput) (domain.Workspace, error) {
-	if err := validateInput(input); err != nil {
+	if err := validateInput(&input); err != nil {
 		return domain.Workspace{}, err
 	}
 
