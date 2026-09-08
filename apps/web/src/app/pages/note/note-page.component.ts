@@ -14,7 +14,11 @@ import {
   template: `
     <div class="flex flex-col h-full w-full bg-background">
       @if (currentNote(); as note) {
-        <app-note-header [note]="note" [onlineUsers]="onlineUsers()" />
+        <app-note-header
+          [note]="note"
+          [onlineUsers]="onlineUsers()"
+          (titleChange)="onTitleChange($event)"
+        />
         <div class="flex-1 overflow-auto w-full">
           <content-layout>
             <app-tiptap-editor [content]="note.content" (contentChange)="onContentChange($event)" />
@@ -50,6 +54,11 @@ export class NotePageComponent {
         this.presenceService.joinNote(note.id);
       }
     });
+  }
+
+  onTitleChange(title: string) {
+    const note = this.currentNote();
+    if (note) this.notesFacade.renameNote(note.id, title);
   }
 
   onContentChange(content: string) {

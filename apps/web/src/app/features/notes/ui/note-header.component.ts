@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, linkedSignal, output } from '@angular/core';
 import { Note } from '../domain/note.model';
 import { OnlineUser } from '../domain/presence.model';
 
@@ -8,12 +8,20 @@ import { OnlineUser } from '../domain/presence.model';
     <div
       class="flex items-center justify-between h-10 px-4 border-b border-border bg-background/80 backdrop-blur-sm"
     >
-      <div class="flex items-center gap-3 min-w-0">
-        <h2 class="text-sm font-medium text-foreground truncate">
-          {{ note()?.title || 'Untitled' }}
-        </h2>
+      <div class="flex flex-1 items-center gap-3 min-w-0">
+        <input
+          #titleInput
+          type="text"
+          placeholder="Untitled"
+          [value]="draftTitle()"
+          (input)="draftTitle.set(titleInput.value)"
+          (blur)="commitTitle()"
+          (keydown.enter)="titleInput.blur()"
+          (keydown.escape)="cancelTitle(); titleInput.blur()"
+          class="min-w-0 flex-1 -mx-1 px-1 rounded-sm bg-transparent text-sm font-medium text-foreground outline-none hover:bg-accent focus:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+        />
         @if (note()) {
-          <span class="text-xs text-muted-foreground hidden sm:inline">
+          <span class="text-xs text-muted-foreground hidden sm:inline whitespace-nowrap">
             Edited {{ formatDate(note()!.updatedAt) }}
           </span>
         }
@@ -40,6 +48,26 @@ import { OnlineUser } from '../domain/presence.model';
 export class NoteHeaderComponent {
   readonly note = input<Note | null>(null);
   readonly onlineUsers = input<OnlineUser[]>([]);
+
+  readonly titleChange = output<string>();
+
+  protected readonly draftTitle = linkedSignal(() => this.note()?.title ?? '');
+
+  commitTitle() {
+    const note = this.note();
+    const title = this.draftTitle().trim();
+
+    if (!note || !title || title === note.title) {
+      this.cancelTitle();
+      return;
+    }
+
+    this.titleChange.emit(title);
+  }
+
+  cancelTitle() {
+    this.draftTitle.set(this.note()?.title ?? '');
+  }
 
   getInitials(name: string): string {
     return name

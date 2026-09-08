@@ -72,6 +72,16 @@ export class NotesFacade {
     this.tabs.openNote(noteId);
   }
 
+  renameNote(noteId: string, title: string) {
+    const note = this.store.noteById(noteId);
+    if (!note) return;
+
+    this.api.update(noteId, { title, content: note.content }).subscribe({
+      next: (updated) => this.store.upsert(updated),
+      error: () => this.store.setError('Failed to rename note'),
+    });
+  }
+
   saveContent(noteId: string, content: string) {
     this.saveRequests.next({ noteId, content });
   }
