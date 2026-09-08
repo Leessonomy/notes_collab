@@ -24,13 +24,12 @@ export class WorkspaceFacade {
     return this.api.create({ name }).pipe(
       tap((workspace) => {
         this.store.add(workspace);
-        this.store.switchActive(workspace);
+        this.store.switchActive(workspace.id);
       }),
     );
   }
 
   switch(id: string) {
-    const workspace = this.store.workspaces().find((w) => w.id === id);
-    if (workspace) this.store.switchActive(workspace);
+    this.store.switchActive(id);
   }
 }

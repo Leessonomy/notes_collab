@@ -5,7 +5,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { ThemeService } from '../core/theme/theme.service';
 import { HlmSidebarService } from '@spartan-ng/helm/sidebar';
-import { NoteTabsService, NoteTab } from '../features/notes';
+import { NoteTabsService, Note } from '../features/notes';
 import { AuthService } from '../core/auth/auth.service';
 
 @Component({
@@ -24,17 +24,17 @@ import { AuthService } from '../core/auth/auth.service';
 
       <div class="flex-1 flex items-center overflow-x-auto">
         <div class="flex items-center h-full">
-          @for (tab of tabs(); track tab.noteId) {
+          @for (note of tabs(); track note.id) {
             <button
-              (click)="switchTab(tab)"
+              (click)="switchTab(note)"
               class="group relative h-full px-4 flex items-center gap-2 border-r border-border hover:bg-accent/50 transition-colors min-w-[120px] max-w-[200px]"
-              [class.bg-accent]="activeTab()?.noteId === tab.noteId"
-              [class.border-b-2]="activeTab()?.noteId === tab.noteId"
-              [class.border-b-primary]="activeTab()?.noteId === tab.noteId"
+              [class.bg-accent]="activeTab()?.id === note.id"
+              [class.border-b-2]="activeTab()?.id === note.id"
+              [class.border-b-primary]="activeTab()?.id === note.id"
             >
-              <span class="text-sm truncate flex-1">{{ tab.title }}</span>
+              <span class="text-sm truncate flex-1">{{ note.title || 'Untitled' }}</span>
               <button
-                (click)="closeTab(tab.noteId, $event)"
+                (click)="closeTab(note.id, $event)"
                 class="opacity-0 group-hover:opacity-100 hover:bg-muted rounded p-0.5 transition-opacity"
               >
                 <ng-icon hlm name="lucideX" size="xs" />
@@ -81,8 +81,8 @@ export class AppHeaderComponent {
     this.sidebarService.toggleSidebar();
   }
 
-  switchTab(tab: NoteTab) {
-    this.noteTabs.openNote({ id: tab.noteId, title: tab.title });
+  switchTab(note: Note) {
+    this.noteTabs.openNote(note.id);
   }
 
   closeTab(noteId: string, event: Event) {

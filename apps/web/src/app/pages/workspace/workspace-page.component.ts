@@ -49,6 +49,6 @@ export class WorkspacePageComponent {
   }
 
   openNote(note: Note) {
-    this.notesFacade.openNote(note);
+    this.notesFacade.openNote(note.id);
   }
 }

@@ -3,7 +3,7 @@ import { Workspace } from '../domain/workspace.model';
 
 interface WorkspaceState {
   workspaces: Workspace[];
-  activeWorkspace: Workspace | null;
+  activeWorkspaceId: string | null;
   error: string | null;
 }
 
@@ -11,13 +11,17 @@ interface WorkspaceState {
 export class WorkspaceStore {
   private readonly state = signal<WorkspaceState>({
     workspaces: [],
-    activeWorkspace: null,
+    activeWorkspaceId: null,
     error: null,
   });
 
   readonly workspaces = computed(() => this.state().workspaces);
-  readonly activeWorkspace = computed(() => this.state().activeWorkspace);
   readonly error = computed(() => this.state().error);
+
+  readonly activeWorkspace = computed(() => {
+    const { workspaces, activeWorkspaceId } = this.state();
+    return workspaces.find((w) => w.id === activeWorkspaceId) ?? null;
+  });
 
   setWorkspaces(workspaces: Workspace[]) {
     this.state.update((state) => ({ ...state, workspaces }));
@@ -30,8 +34,8 @@ export class WorkspaceStore {
     }));
   }
 
-  switchActive(workspace: Workspace) {
-    this.state.update((state) => ({ ...state, activeWorkspace: workspace }));
+  switchActive(workspaceId: string) {
+    this.state.update((state) => ({ ...state, activeWorkspaceId: workspaceId }));
   }
 
   setError(error: string | null) {

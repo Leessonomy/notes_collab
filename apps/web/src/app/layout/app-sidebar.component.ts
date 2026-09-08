@@ -102,7 +102,7 @@ import {
                             <button
                               hlmSidebarMenuSubButton
                               [isActive]="note.id === currentNote()?.id"
-                              (click)="openNote(note.id)"
+                              (click)="notesFacade.openNote(note.id)"
                             >
                               <ng-icon hlm name="lucideFileText" size="xs" />
                               <span>{{ note.title || 'Untitled' }}</span>
@@ -216,11 +216,6 @@ export class AppSidebarComponent {
   createNote(workspaceId: string) {
     this.setOpen(workspaceId, true);
     this.notesFacade.createAndOpen(workspaceId);
-  }
-
-  openNote(id: string) {
-    const note = this.notesFacade.notes().find((n) => n.id === id);
-    if (note) this.notesFacade.openNote(note);
   }
 
   copyInviteLink(workspaceId: string) {

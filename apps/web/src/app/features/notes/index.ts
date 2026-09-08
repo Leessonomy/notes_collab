@@ -12,7 +12,7 @@ export const provideNotes = (): Provider[] => [
 ];
 
 export { NotesFacade };
-export { NoteTabsService, type NoteTab } from './application/note-tabs.service';
+export { NoteTabsService } from './application/note-tabs.service';
 export { PresenceService };
 export { NoteHeaderComponent } from './ui/note-header.component';
 export { NoteGridComponent } from './ui/note-grid.component';

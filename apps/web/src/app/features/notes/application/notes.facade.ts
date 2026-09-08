@@ -52,7 +52,7 @@ export class NotesFacade {
       .subscribe({
         next: (note) => {
           this.store.add(note);
-          this.tabs.openNote(note);
+          this.tabs.openNote(note.id);
         },
         error: () => this.store.setError('Failed to create note'),
       });
@@ -68,8 +68,8 @@ export class NotesFacade {
     })
   }
 
-  openNote(note: { id: string; title: string }) {
-    this.tabs.openNote(note);
+  openNote(noteId: string) {
+    this.tabs.openNote(noteId);
   }
 
   saveContent(noteId: string, content: string) {
