@@ -1,14 +1,14 @@
 import { Component, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucidePlus, lucideFileText } from '@ng-icons/lucide';
+import { lucidePlus, lucideFileText, lucideTrash2 } from '@ng-icons/lucide';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { Note } from '../domain/note.model';
 
 @Component({
   selector: 'app-note-grid',
   imports: [NgIcon, HlmIcon, DatePipe],
-  providers: [provideIcons({ lucidePlus, lucideFileText })],
+  providers: [provideIcons({ lucidePlus, lucideFileText, lucideTrash2 })],
   template: `
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       @if (canCreate()) {
@@ -29,33 +29,44 @@ import { Note } from '../domain/note.model';
         </button>
       }
       @for (note of notes(); track note.id) {
-        <button
-          (click)="open.emit(note)"
-          class="group relative h-48 rounded-lg border border-border hover:border-primary hover:shadow-md bg-card transition-all duration-200 p-4 flex flex-col cursor-pointer text-left overflow-hidden"
-        >
-          <div class="flex items-start gap-3 mb-3">
-            <div
-              class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"
-            >
-              <ng-icon hlm name="lucideFileText" size="sm" class="text-primary" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <h3
-                class="font-semibold text-foreground truncate group-hover:text-primary transition-colors"
+        <div class="relative">
+          <button
+            (click)="open.emit(note)"
+            class="group relative h-48 w-full rounded-lg border border-border hover:border-primary hover:shadow-md bg-card transition-all duration-200 p-4 flex flex-col cursor-pointer text-left overflow-hidden"
+          >
+            <div class="flex items-start gap-3 mb-3">
+              <div
+                class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"
               >
-                {{ note.title || 'Untitled' }}
-              </h3>
-              <p class="text-xs text-muted-foreground mt-1">
-                {{ note.updatedAt | date }}
+                <ng-icon hlm name="lucideFileText" size="sm" class="text-primary" />
+              </div>
+              <div class="flex-1 min-w-0 pr-8">
+                <h3
+                  class="font-semibold text-foreground truncate group-hover:text-primary transition-colors"
+                >
+                  {{ note.title || 'Untitled' }}
+                </h3>
+                <p class="text-xs text-muted-foreground mt-1">
+                  {{ note.updatedAt | date }}
+                </p>
+              </div>
+            </div>
+            <div class="flex-1 overflow-hidden">
+              <p class="text-sm text-muted-foreground line-clamp-4">
+                {{ getPreview(note.content) }}
               </p>
             </div>
-          </div>
-          <div class="flex-1 overflow-hidden">
-            <p class="text-sm text-muted-foreground line-clamp-4">
-              {{ getPreview(note.content) }}
-            </p>
-          </div>
-        </button>
+          </button>
+
+          <button
+            type="button"
+            [attr.aria-label]="'Delete ' + (note.title || 'Untitled')"
+            (click)="delete.emit(note)"
+            class="absolute top-3 right-3 flex aspect-square w-8 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <ng-icon hlm name="lucideTrash2" size="sm" />
+          </button>
+        </div>
       }
     </div>
 
@@ -76,6 +87,7 @@ export class NoteGridComponent {
 
   readonly open = output<Note>();
   readonly create = output<void>();
+  readonly delete = output<Note>();
 
   getPreview(content: string): string {
     const text = content

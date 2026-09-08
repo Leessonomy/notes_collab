@@ -17,6 +17,7 @@ import {
   lucideSettings,
   lucideFolderOpen,
   lucideUserPlus,
+  lucideTrash2,
   lucideX,
 } from '@ng-icons/lucide';
 
@@ -38,7 +39,8 @@ import {
       lucideSettings,
       lucideFolderOpen,
       lucideUserPlus,
-      lucideX
+      lucideTrash2,
+      lucideX,
     }),
   ],
   template: `
@@ -75,6 +77,7 @@ import {
                     <button
                       hlmCollapsibleTrigger
                       hlmSidebarMenuButton
+                      class="group-has-[[data-sidebar=menu-action]]/menu-item:pr-16"
                       [isActive]="workspace.id === currentWorkspace()?.id"
                       (click)="selectWorkspace(workspace.id)"
                     >
@@ -89,16 +92,29 @@ import {
                     </button>
 
                     @if (isAdmin) {
-                      <button hlmSidebarMenuAction showOnHover (click)="createNote(workspace.id)">
+                      <button
+                        hlmSidebarMenuAction
+                        class="right-8 !top-1 !w-6"
+                        [attr.aria-label]="'New note in ' + workspace.name"
+                        (click)="createNote(workspace.id)"
+                      >
                         <ng-icon hlm name="lucidePlus" size="sm" />
+                      </button>
+
+                      <button
+                        hlmSidebarMenuAction
+                        class="hover:text-destructive !top-1 !w-6"
+                        [attr.aria-label]="'Delete ' + workspace.name"
+                        (click)="deleteWorkspace(workspace.id)"
+                      >
+                        <ng-icon hlm name="lucideTrash2" size="sm" />
                       </button>
                     }
 
                     <hlm-collapsible-content>
                       <ul hlmSidebarMenuSub>
                         @for (note of notesFacade.byWorkspace(workspace.id); track note.id) {
-                          <li hlmSidebarMenuSubItem>
-                            <div class="flex items-center">
+                          <li hlmSidebarMenuSubItem class="flex items-center gap-0.5">
                             <button
                               hlmSidebarMenuSubButton
                               [isActive]="note.id === currentNote()?.id"
@@ -107,8 +123,15 @@ import {
                               <ng-icon hlm name="lucideFileText" size="xs" />
                               <span>{{ note.title || 'Untitled' }}</span>
                             </button>
-                            <button (click)="deleteNote(note.id)" class="rounded-md border border-transparent text-center text-sm transition-all hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:opacity-50 disabled:shadow-none" type="button"><ng-icon hlm name="lucideX" size="sm" /></button>
-                            </div>
+
+                            <button
+                              type="button"
+                              [attr.aria-label]="'Delete ' + (note.title || 'Untitled')"
+                              (click)="deleteNote(note.id)"
+                              class="text-sidebar-foreground/60 ring-sidebar-ring hover:bg-sidebar-accent hover:text-destructive flex aspect-square w-6 shrink-0 items-center justify-center rounded-md outline-none hover:cursor-pointer focus-visible:ring-2"
+                            >
+                              <ng-icon hlm name="lucideX" size="sm" />
+                            </button>
                           </li>
                         } @empty {
                           <li hlmSidebarMenuSubItem>
@@ -210,7 +233,16 @@ export class AppSidebarComponent {
   }
 
   deleteNote(noteId: string) {
-    this.notesFacade.deleteNote(noteId)
+    this.notesFacade.deleteNote(noteId);
+  }
+
+  deleteWorkspace(workspaceId: string) {
+    const losesOpenNote = this.currentNote()?.workspaceId === workspaceId;
+
+    this.workspaceFacade.delete(workspaceId).subscribe(() => {
+      this.appFacade.load();
+      if (losesOpenNote) this.router.navigateByUrl(appUrls.workspace);
+    });
   }
 
   createNote(workspaceId: string) {

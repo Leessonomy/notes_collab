@@ -61,11 +61,11 @@ export class NotesFacade {
   deleteNote(noteId: string) {
     this.api.delete(noteId).subscribe({
       next: () => {
-        this.store.delete(noteId)
+        this.store.delete(noteId);
+        this.tabs.closeTab(noteId);
       },
       error: () => this.store.setError('Failed to delete note'),
-
-    })
+    });
   }
 
   openNote(noteId: string) {

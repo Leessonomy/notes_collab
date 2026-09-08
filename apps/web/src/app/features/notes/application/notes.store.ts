@@ -33,7 +33,10 @@ export class NotesStore {
   }
 
   delete(noteId: string) {
-    this.state.update((state) => ({...state, notes: state.notes.filter(({id}) => id !== noteId)}))
+    this.state.update((state) => ({
+      ...state,
+      notes: state.notes.filter((n) => n.id !== noteId),
+    }));
   }
 
   upsert(note: Note) {

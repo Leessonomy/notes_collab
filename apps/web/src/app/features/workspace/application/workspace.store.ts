@@ -34,6 +34,13 @@ export class WorkspaceStore {
     }));
   }
 
+  delete(workspaceId: string) {
+    this.state.update((state) => ({
+      ...state,
+      workspaces: state.workspaces.filter((w) => w.id !== workspaceId),
+    }));
+  }
+
   switchActive(workspaceId: string) {
     this.state.update((state) => ({ ...state, activeWorkspaceId: workspaceId }));
   }

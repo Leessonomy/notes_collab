@@ -9,4 +9,8 @@ export class WorkspaceApi {
   create({ name }: { name: string }) {
     return this.http.post<Workspace>('/api/workspaces', { name });
   }
+
+  delete(id: string) {
+    return this.http.delete(`/api/workspaces/${id}`);
+  }
 }

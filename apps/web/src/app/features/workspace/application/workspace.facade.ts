@@ -29,6 +29,10 @@ export class WorkspaceFacade {
     );
   }
 
+  delete(id: string) {
+    return this.api.delete(id).pipe(tap(() => this.store.delete(id)));
+  }
+
   switch(id: string) {
     this.store.switchActive(id);
   }

@@ -25,6 +25,7 @@ import { ContentLayoutComponent } from '../../shared/ui/content-layout/content-l
             [canCreate]="isAdmin"
             (open)="openNote($event)"
             (create)="createNote()"
+            (delete)="deleteNote($event)"
           />
         </content-layout>
       </div>
@@ -50,5 +51,9 @@ export class WorkspacePageComponent {
 
   openNote(note: Note) {
     this.notesFacade.openNote(note.id);
+  }
+
+  deleteNote(note: Note) {
+    this.notesFacade.deleteNote(note.id);
   }
 }
