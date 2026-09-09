@@ -80,10 +80,12 @@ func (r *NoteRepo) Create(ctx context.Context, n domain.Note) error {
 	return err
 }
 
-func (r *NoteRepo) Update(ctx context.Context, noteID, ownerID, title, content string) (domain.Note, error) {
+func (r *NoteRepo) Update(ctx context.Context, noteID, ownerID string, title, content *string) (domain.Note, error) {
 	row := r.db.QueryRow(ctx, `
         UPDATE notes
-        SET title = $1, content = $2, updated_at = NOW()
+        SET title = COALESCE($1, title),
+            content = COALESCE($2, content),
+            updated_at = NOW()
         WHERE id = $3 AND owner_id = $4
         RETURNING id, workspace_id, title, content, owner_id, created_at, updated_at
     `, title, content, noteID, ownerID)

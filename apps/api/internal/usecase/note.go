@@ -14,7 +14,7 @@ type NoteRepo interface {
 	ListByOwner(ctx context.Context, ownerID string) ([]domain.Note, error)
 	Delete(ctx context.Context, noteID, ownerID string) error
 	GetByID(ctx context.Context, noteID, ownerID string) (domain.Note, error)
-	Update(ctx context.Context, noteID, ownerID, title, content string) (domain.Note, error)
+	Update(ctx context.Context, noteID, ownerID string, title, content *string) (domain.Note, error)
 }
 
 type Note struct {
