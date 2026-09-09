@@ -73,10 +73,7 @@ export class NotesFacade {
   }
 
   renameNote(noteId: string, title: string) {
-    const note = this.store.noteById(noteId);
-    if (!note) return;
-
-    this.api.update(noteId, { title, content: note.content }).subscribe({
+    this.api.update(noteId, { title }).subscribe({
       next: (updated) => this.store.upsert(updated),
       error: () => this.store.setError('Failed to rename note'),
     });
