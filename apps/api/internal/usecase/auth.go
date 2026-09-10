@@ -15,12 +15,14 @@ type UserRepo interface {
 	Create(ctx context.Context, u domain.User) error
 	GetByID(ctx context.Context, userID string) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
+	UpdatePassword(ctx context.Context, userID, passwordHash string) error
 }
 
 type TokenRepo interface {
 	Save(ctx context.Context, t domain.RefreshToken) error
 	Refresh(ctx context.Context, oldToken, newToken string, expiresAt time.Time) (string, error)
 	Delete(ctx context.Context, token string) error
+	DeleteByUser(ctx context.Context, userID string) error
 }
 
 type Session interface {
@@ -139,6 +141,38 @@ func (a *Auth) Refresh(ctx context.Context, refreshToken string) (dto.SessionOut
 		AccessExpiresAt:  now.Add(a.session.AccessExpire()),
 		RefreshExpiresAt: refreshExpiresAt,
 	}, nil
+}
+
+func (a *Auth) ChangePassword(ctx context.Context, input dto.ChangePasswordInput) (dto.SessionOutput, error) {
+	var output dto.SessionOutput
+
+	if err := validateInput(&input); err != nil {
+		return output, err
+	}
+
+	user, err := a.userRepo.GetByID(ctx, input.UserID)
+	if err != nil {
+		return output, err
+	}
+
+	if !utils.CheckPassword(user.Password, input.CurrentPassword) {
+		return output, domain.ErrWrongPassword
+	}
+
+	hash, err := utils.HashPassword(input.NewPassword)
+	if err != nil {
+		return output, err
+	}
+
+	if err := a.tokenRepo.DeleteByUser(ctx, user.ID); err != nil {
+		return output, err
+	}
+
+	if err := a.userRepo.UpdatePassword(ctx, user.ID, hash); err != nil {
+		return output, err
+	}
+
+	return a.newSession(ctx, user.ID)
 }
 
 func (a *Auth) LogOut(ctx context.Context, refreshToken string) error {

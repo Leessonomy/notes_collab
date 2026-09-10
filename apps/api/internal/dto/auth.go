@@ -16,6 +16,12 @@ type LogInInput struct {
 	Password string `json:"password" validate:"required"`
 }
 
+type ChangePasswordInput struct {
+	UserID          string `json:"-" validate:"required"`
+	CurrentPassword string `json:"currentPassword" validate:"required"`
+	NewPassword     string `json:"newPassword" validate:"required,min=8"`
+}
+
 type SessionOutput struct {
 	AccessToken      string
 	RefreshToken     string

@@ -116,6 +116,27 @@ func (c *AuthController) Refresh(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (c *AuthController) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	input := dto.ChangePasswordInput{
+		UserID: utils.UserIDFromContext(r.Context()),
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		utils.BadRequest(w, "invalid body")
+		return
+	}
+
+	session, err := c.authUseCase.ChangePassword(r.Context(), input)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+
+	c.setSession(w, session)
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (c *AuthController) LogOut(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie(utils.RefreshCookieName); err == nil {
 		c.authUseCase.LogOut(r.Context(), cookie.Value)

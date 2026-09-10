@@ -30,6 +30,23 @@ func (r *UserRepo) Create(ctx context.Context, u domain.User) error {
 	return err
 }
 
+func (r *UserRepo) UpdatePassword(ctx context.Context, userID, passwordHash string) error {
+	tag, err := r.db.Exec(ctx,
+		`UPDATE users SET password = $1 WHERE id = $2`,
+		passwordHash,
+		userID,
+	)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return domain.ErrUserNotFound
+	}
+
+	return nil
+}
+
 func (r *UserRepo) scanOne(row pgx.Row) (*domain.User, error) {
 	var u domain.User
 

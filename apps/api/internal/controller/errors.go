@@ -9,7 +9,8 @@ import (
 
 func domainError(w http.ResponseWriter, err error) {
 	switch {
-	case errors.Is(err, domain.ErrValidation):
+	case errors.Is(err, domain.ErrValidation),
+		errors.Is(err, domain.ErrWrongPassword):
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	case errors.Is(err, domain.ErrEmailTaken):
 		http.Error(w, err.Error(), http.StatusConflict)
@@ -19,6 +20,7 @@ func domainError(w http.ResponseWriter, err error) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 	case errors.Is(err, domain.ErrInvalidCredentials),
 		errors.Is(err, domain.ErrTokenNotFound),
+		errors.Is(err, domain.ErrUserNotFound),
 		errors.Is(err, domain.ErrUnauthorized):
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 	default:

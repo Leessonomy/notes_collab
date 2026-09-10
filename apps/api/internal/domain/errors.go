@@ -12,6 +12,7 @@ var (
 	ErrUserNotFound       = errors.New("user not found")
 	ErrEmailTaken         = errors.New("email already taken")
 	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrWrongPassword      = errors.New("current password is incorrect")
 	ErrUnauthorized       = errors.New("unauthorized")
 	ErrTokenNotFound      = errors.New("refresh token not found")
 )
