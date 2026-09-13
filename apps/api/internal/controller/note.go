@@ -67,8 +67,8 @@ func (c *NoteController) GetByID(w http.ResponseWriter, r *http.Request) {
 
 func (c *NoteController) UpdateNote(w http.ResponseWriter, r *http.Request) {
 	input := dto.UpdateNoteInput{
-		NoteID:  r.PathValue("id"),
-		OwnerID: utils.UserIDFromContext(r.Context()),
+		NoteID: r.PathValue("id"),
+		UserID: utils.UserIDFromContext(r.Context()),
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {

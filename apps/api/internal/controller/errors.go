@@ -12,6 +12,8 @@ func domainError(w http.ResponseWriter, err error) {
 	case errors.Is(err, domain.ErrValidation),
 		errors.Is(err, domain.ErrWrongPassword):
 		http.Error(w, err.Error(), http.StatusBadRequest)
+	case errors.Is(err, domain.ErrForbidden):
+		http.Error(w, err.Error(), http.StatusForbidden)
 	case errors.Is(err, domain.ErrEmailTaken):
 		http.Error(w, err.Error(), http.StatusConflict)
 	case errors.Is(err, domain.ErrNoteNotFound),

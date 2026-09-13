@@ -11,27 +11,49 @@ import (
 
 type NoteRepo interface {
 	Create(ctx context.Context, n domain.Note) error
-	ListByOwner(ctx context.Context, ownerID string) ([]domain.Note, error)
-	Delete(ctx context.Context, noteID, ownerID string) error
-	GetByID(ctx context.Context, noteID, ownerID string) (domain.Note, error)
-	Update(ctx context.Context, noteID, ownerID string, title, content *string) (domain.Note, error)
+	ListByMember(ctx context.Context, userID string) ([]domain.Note, error)
+	Delete(ctx context.Context, noteID string) error
+	GetByID(ctx context.Context, noteID string) (domain.Note, error)
+	Update(ctx context.Context, noteID string, title, content *string) (domain.Note, error)
 }
 
 type Note struct {
-	noteRepo NoteRepo
+	noteRepo            NoteRepo
+	workspaceMemberRepo WorkspaceMemberRepo
 }
 
-func NewNote(noteRepo NoteRepo) *Note {
-	return &Note{noteRepo: noteRepo}
+func NewNote(noteRepo NoteRepo, workspaceMemberRepo WorkspaceMemberRepo) *Note {
+	return &Note{noteRepo: noteRepo, workspaceMemberRepo: workspaceMemberRepo}
 }
 
-func (n *Note) GetByID(ctx context.Context, noteID, ownerID string) (domain.Note, error) {
-	return n.noteRepo.GetByID(ctx, noteID, ownerID)
+func (n *Note) GetByID(ctx context.Context, noteID, userID string) (domain.Note, error) {
+	note, err := n.noteRepo.GetByID(ctx, noteID)
+	if err != nil {
+		return domain.Note{}, err
+	}
+
+	_, rights, err := checkAccessRights(ctx, n.workspaceMemberRepo, note.WorkspaceID, userID)
+	if err != nil {
+		return domain.Note{}, err
+	}
+	if !rights.Read {
+		return domain.Note{}, domain.ErrForbidden
+	}
+
+	return note, nil
 }
 
 func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.Note, error) {
 	if err := validateInput(&input); err != nil {
 		return domain.Note{}, err
+	}
+
+	_, rights, err := checkAccessRights(ctx, n.workspaceMemberRepo, input.WorkspaceID, input.OwnerID)
+	if err != nil {
+		return domain.Note{}, err
+	}
+	if !rights.Write {
+		return domain.Note{}, domain.ErrForbidden
 	}
 
 	now := time.Now().UTC()
@@ -58,9 +80,35 @@ func (n *Note) Update(ctx context.Context, input dto.UpdateNoteInput) (domain.No
 		return domain.Note{}, err
 	}
 
-	return n.noteRepo.Update(ctx, input.NoteID, input.OwnerID, input.Title, input.Content)
+	note, err := n.noteRepo.GetByID(ctx, input.NoteID)
+	if err != nil {
+		return domain.Note{}, err
+	}
+
+	_, rights, err := checkAccessRights(ctx, n.workspaceMemberRepo, note.WorkspaceID, input.UserID)
+	if err != nil {
+		return domain.Note{}, err
+	}
+	if !rights.Write {
+		return domain.Note{}, domain.ErrForbidden
+	}
+
+	return n.noteRepo.Update(ctx, input.NoteID, input.Title, input.Content)
 }
 
-func (n *Note) Delete(ctx context.Context, noteID, ownerID string) error {
-	return n.noteRepo.Delete(ctx, noteID, ownerID)
+func (n *Note) Delete(ctx context.Context, noteID, userID string) error {
+	note, err := n.noteRepo.GetByID(ctx, noteID)
+	if err != nil {
+		return err
+	}
+
+	_, rights, err := checkAccessRights(ctx, n.workspaceMemberRepo, note.WorkspaceID, userID)
+	if err != nil {
+		return err
+	}
+	if !rights.Write {
+		return domain.ErrForbidden
+	}
+
+	return n.noteRepo.Delete(ctx, noteID)
 }

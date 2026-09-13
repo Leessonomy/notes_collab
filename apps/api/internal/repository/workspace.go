@@ -34,45 +34,69 @@ func scanWorkspace(row pgx.Row) (domain.Workspace, error) {
 }
 
 func (r *WorkspaceRepo) Create(ctx context.Context, w domain.Workspace) error {
-	_, err := r.db.Exec(ctx, `
-        INSERT INTO workspaces (
-            id, name, owner_id, created_at, updated_at
-        )
-        VALUES ($1, $2, $3, $4, $5)
-    `,
-		w.ID,
-		w.Name,
-		w.OwnerID,
-		w.CreatedAt,
-		w.UpdatedAt,
-	)
-	return err
+	return pgx.BeginFunc(ctx, r.db, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, `
+            INSERT INTO workspaces (
+                id, name, owner_id, created_at, updated_at
+            )
+            VALUES ($1, $2, $3, $4, $5)
+        `,
+			w.ID,
+			w.Name,
+			w.OwnerID,
+			w.CreatedAt,
+			w.UpdatedAt,
+		)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.Exec(ctx, `
+            INSERT INTO workspace_members (workspace_id, user_id, role, joined_at)
+            VALUES ($1, $2, $3, $4)
+        `,
+			w.ID,
+			w.OwnerID,
+			domain.Owner,
+			w.CreatedAt,
+		)
+		return err
+	})
 }
 
-func (r *WorkspaceRepo) ListByOwner(ctx context.Context, ownerID string) ([]domain.Workspace, error) {
+func (r *WorkspaceRepo) ListByMember(ctx context.Context, userID string) ([]domain.WorkspaceWithMember, error) {
 	rows, err := r.db.Query(ctx, `
-        SELECT id, name, owner_id, created_at, updated_at
-        FROM workspaces
-        WHERE owner_id = $1
-    `, ownerID)
+        SELECT w.id, w.name, w.owner_id, w.created_at, w.updated_at, m.role, m.joined_at
+        FROM workspaces w
+        JOIN workspace_members m ON m.workspace_id = w.id
+        WHERE m.user_id = $1
+        ORDER BY w.created_at
+    `, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	data := make([]domain.Workspace, 0)
+	data := make([]domain.WorkspaceWithMember, 0)
 	for rows.Next() {
-		var w domain.Workspace
+		var (
+			item = domain.WorkspaceWithMember{Member: domain.WorkspaceMember{UserID: userID}}
+			role string
+		)
 		if err := rows.Scan(
-			&w.ID,
-			&w.Name,
-			&w.OwnerID,
-			&w.CreatedAt,
-			&w.UpdatedAt,
+			&item.Workspace.ID,
+			&item.Workspace.Name,
+			&item.Workspace.OwnerID,
+			&item.Workspace.CreatedAt,
+			&item.Workspace.UpdatedAt,
+			&role,
+			&item.Member.JoinedAt,
 		); err != nil {
 			return nil, err
 		}
-		data = append(data, w)
+		item.Member.WorkspaceID = item.Workspace.ID
+		item.Member.Role = domain.Role(role)
+		data = append(data, item)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -82,19 +106,19 @@ func (r *WorkspaceRepo) ListByOwner(ctx context.Context, ownerID string) ([]doma
 	return data, nil
 }
 
-func (r *WorkspaceRepo) Update(ctx context.Context, workspaceID, ownerID, name string) (domain.Workspace, error) {
+func (r *WorkspaceRepo) Update(ctx context.Context, workspaceID, name string) (domain.Workspace, error) {
 	row := r.db.QueryRow(ctx, `
         UPDATE workspaces
         SET name = $1, updated_at = NOW()
-        WHERE id = $2 AND owner_id = $3
+        WHERE id = $2
         RETURNING id, name, owner_id, created_at, updated_at
-    `, name, workspaceID, ownerID)
+    `, name, workspaceID)
 
 	return scanWorkspace(row)
 }
 
-func (r *WorkspaceRepo) Delete(ctx context.Context, workspaceID, ownerID string) error {
-	tag, err := r.db.Exec(ctx, `DELETE FROM workspaces WHERE id = $1 AND owner_id = $2`, workspaceID, ownerID)
+func (r *WorkspaceRepo) Delete(ctx context.Context, workspaceID string) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM workspaces WHERE id = $1`, workspaceID)
 	if err != nil {
 		return err
 	}

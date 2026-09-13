@@ -18,10 +18,11 @@ func createHandler(cfg *config, pool *pgxpool.Pool) http.Handler {
 	refreshRepo := repository.NewRefreshTokenRepo(pool)
 	workspaceRepo := repository.NewWorkspaceRepo(pool)
 	noteRepo := repository.NewNoteRepo(pool)
+	workspaceMemberRepo := repository.NewWorkspaceMemberRepo(pool)
 
 	authUC := usecase.NewAuth(userRepo, refreshRepo, jwt)
-	workspaceUC := usecase.NewWorkspace(workspaceRepo, noteRepo)
-	noteUC := usecase.NewNote(noteRepo)
+	workspaceUC := usecase.NewWorkspace(workspaceRepo, noteRepo, workspaceMemberRepo)
+	noteUC := usecase.NewNote(noteRepo, workspaceMemberRepo)
 
 	authCtrl := controller.NewAuthController(authUC, cfg.CookieSecure)
 	workspaceCtrl := controller.NewWorkspaceController(workspaceUC)

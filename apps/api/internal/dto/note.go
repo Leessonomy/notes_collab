@@ -11,7 +11,7 @@ type CreateNoteInput struct {
 
 type UpdateNoteInput struct {
 	NoteID  string  `json:"-" validate:"required"`
-	OwnerID string  `json:"-" validate:"required"`
+	UserID  string  `json:"-" validate:"required"`
 	Title   *string `json:"title" mod:"trim" validate:"omitnil,min=1,max=200"`
 	Content *string `json:"content" validate:"omitnil,max=100000"`
 }

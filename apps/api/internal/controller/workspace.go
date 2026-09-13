@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
+	"notes-collab-api/internal/domain"
 	"notes-collab-api/internal/dto"
 	"notes-collab-api/internal/usecase"
 	"notes-collab-api/internal/utils"
@@ -45,19 +46,13 @@ func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, dto.WorkspaceOutput{
-		ID:        workspace.ID,
-		Name:      workspace.Name,
-		OwnerID:   workspace.OwnerID,
-		CreatedAt: workspace.CreatedAt,
-		UpdatedAt: workspace.UpdatedAt,
-	})
+	utils.WriteJSON(w, http.StatusCreated, toWorkspaceOutput(workspace))
 }
 
 func (c *WorkspaceController) UpdateWorkspace(w http.ResponseWriter, r *http.Request) {
 	input := dto.UpdateWorkspaceInput{
 		WorkspaceID: r.PathValue("id"),
-		OwnerID:     utils.UserIDFromContext(r.Context()),
+		UserID:      utils.UserIDFromContext(r.Context()),
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -71,13 +66,7 @@ func (c *WorkspaceController) UpdateWorkspace(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, dto.WorkspaceOutput{
-		ID:        workspace.ID,
-		Name:      workspace.Name,
-		OwnerID:   workspace.OwnerID,
-		CreatedAt: workspace.CreatedAt,
-		UpdatedAt: workspace.UpdatedAt,
-	})
+	utils.WriteJSON(w, http.StatusOK, toWorkspaceOutput(workspace))
 }
 
 func (c *WorkspaceController) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
@@ -92,4 +81,18 @@ func (c *WorkspaceController) DeleteWorkspace(w http.ResponseWriter, r *http.Req
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func toWorkspaceOutput(w domain.WorkspaceWithMember) dto.WorkspaceOutput {
+	return dto.WorkspaceOutput{
+		ID:      w.Workspace.ID,
+		Name:    w.Workspace.Name,
+		OwnerID: w.Workspace.OwnerID,
+		Membership: dto.MembershipOutput{
+			Role:     string(w.Member.Role),
+			JoinedAt: w.Member.JoinedAt,
+		},
+		CreatedAt: w.Workspace.CreatedAt,
+		UpdatedAt: w.Workspace.UpdatedAt,
+	}
 }

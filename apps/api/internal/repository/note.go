@@ -80,25 +80,27 @@ func (r *NoteRepo) Create(ctx context.Context, n domain.Note) error {
 	return err
 }
 
-func (r *NoteRepo) Update(ctx context.Context, noteID, ownerID string, title, content *string) (domain.Note, error) {
+func (r *NoteRepo) Update(ctx context.Context, noteID string, title, content *string) (domain.Note, error) {
 	row := r.db.QueryRow(ctx, `
         UPDATE notes
         SET title = COALESCE($1, title),
             content = COALESCE($2, content),
             updated_at = NOW()
-        WHERE id = $3 AND owner_id = $4
+        WHERE id = $3
         RETURNING id, workspace_id, title, content, owner_id, created_at, updated_at
-    `, title, content, noteID, ownerID)
+    `, title, content, noteID)
 
 	return scanNote(row)
 }
 
-func (r *NoteRepo) ListByOwner(ctx context.Context, ownerID string) ([]domain.Note, error) {
+func (r *NoteRepo) ListByMember(ctx context.Context, userID string) ([]domain.Note, error) {
 	rows, err := r.db.Query(ctx, `
-        SELECT id, workspace_id, title, content, owner_id, created_at, updated_at
-        FROM notes
-        WHERE owner_id = $1
-    `, ownerID)
+        SELECT n.id, n.workspace_id, n.title, n.content, n.owner_id, n.created_at, n.updated_at
+        FROM notes n
+        JOIN workspace_members m ON m.workspace_id = n.workspace_id
+        WHERE m.user_id = $1
+        ORDER BY n.created_at
+    `, userID)
 
 	if err != nil {
 		return nil, err
@@ -106,18 +108,18 @@ func (r *NoteRepo) ListByOwner(ctx context.Context, ownerID string) ([]domain.No
 	return scanNotes(rows)
 }
 
-func (r *NoteRepo) GetByID(ctx context.Context, noteID, ownerID string) (domain.Note, error) {
+func (r *NoteRepo) GetByID(ctx context.Context, noteID string) (domain.Note, error) {
 	row := r.db.QueryRow(ctx, `
         SELECT id, workspace_id, title, content, owner_id, created_at, updated_at
         FROM notes
-        WHERE id = $1 AND owner_id = $2
-    `, noteID, ownerID)
+        WHERE id = $1
+    `, noteID)
 
 	return scanNote(row)
 }
 
-func (r *NoteRepo) Delete(ctx context.Context, noteID, ownerID string) error {
-	tag, err := r.db.Exec(ctx, `DELETE FROM notes WHERE id = $1 AND owner_id = $2`, noteID, ownerID)
+func (r *NoteRepo) Delete(ctx context.Context, noteID string) error {
+	tag, err := r.db.Exec(ctx, `DELETE FROM notes WHERE id = $1`, noteID)
 	if err != nil {
 		return err
 	}

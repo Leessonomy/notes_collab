@@ -9,6 +9,9 @@ var (
 	ErrNoteNotFound            = errors.New("note not found")
 	ErrWorkspaceNotFound       = errors.New("workspace not found")
 
+	ErrNotMember = errors.New("not a workspace member")
+	ErrForbidden = errors.New("forbidden")
+
 	ErrUserNotFound       = errors.New("user not found")
 	ErrEmailTaken         = errors.New("email already taken")
 	ErrInvalidCredentials = errors.New("invalid credentials")
