@@ -10,6 +10,6 @@ type WorkspaceMember struct {
 }
 
 type WorkspaceWithMember struct {
-	Workspace Workspace
-	Member    WorkspaceMember
+	Workspace
+	Membership WorkspaceMember
 }

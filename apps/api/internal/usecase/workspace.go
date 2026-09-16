@@ -47,7 +47,7 @@ func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) 
 
 	return domain.WorkspaceWithMember{
 		Workspace: workspace,
-		Member: domain.WorkspaceMember{
+		Membership: domain.WorkspaceMember{
 			WorkspaceID: workspace.ID,
 			UserID:      input.OwnerID,
 			Role:        domain.Owner,
@@ -68,37 +68,39 @@ func (w *Workspace) ListWithNotes(ctx context.Context, userID string) ([]dto.Wor
 	}
 
 	notesByWorkspace := make(map[string][]dto.NoteOutput, len(workspaces))
-	for _, note := range notes {
-		notesByWorkspace[note.WorkspaceID] = append(notesByWorkspace[note.WorkspaceID], dto.NoteOutput{
-			ID:          note.ID,
-			WorkspaceID: note.WorkspaceID,
-			Title:       note.Title,
-			Content:     note.Content,
-			OwnerID:     note.OwnerID,
-			CreatedAt:   note.CreatedAt,
-			UpdatedAt:   note.UpdatedAt,
+
+	for _, n := range notes {
+		notesByWorkspace[n.WorkspaceID] = append(notesByWorkspace[n.WorkspaceID], dto.NoteOutput{
+			ID:          n.ID,
+			WorkspaceID: n.WorkspaceID,
+			Title:       n.Title,
+			Content:     n.Content,
+			OwnerID:     n.OwnerID,
+			CreatedAt:   n.CreatedAt,
+			UpdatedAt:   n.UpdatedAt,
 		})
 	}
 
 	result := make([]dto.WorkspaceWithNotes, 0, len(workspaces))
 
-	for _, item := range workspaces {
-		list := notesByWorkspace[item.Workspace.ID]
-		if list == nil {
+	for _, ws := range workspaces {
+		list := notesByWorkspace[ws.ID]
+
+		if len(list) == 0 {
 			list = make([]dto.NoteOutput, 0)
 		}
 
 		result = append(result, dto.WorkspaceWithNotes{
 			WorkspaceOutput: dto.WorkspaceOutput{
-				ID:      item.Workspace.ID,
-				Name:    item.Workspace.Name,
-				OwnerID: item.Workspace.OwnerID,
+				ID:      ws.ID,
+				Name:    ws.Name,
+				OwnerID: ws.OwnerID,
 				Membership: dto.MembershipOutput{
-					Role:     string(item.Member.Role),
-					JoinedAt: item.Member.JoinedAt,
+					Role:     string(ws.Membership.Role),
+					JoinedAt: ws.Membership.JoinedAt,
 				},
-				CreatedAt: item.Workspace.CreatedAt,
-				UpdatedAt: item.Workspace.UpdatedAt,
+				CreatedAt: ws.CreatedAt,
+				UpdatedAt: ws.UpdatedAt,
 			},
 			Notes: list,
 		})
@@ -125,7 +127,7 @@ func (w *Workspace) Update(ctx context.Context, input dto.UpdateWorkspaceInput) 
 		return domain.WorkspaceWithMember{}, err
 	}
 
-	return domain.WorkspaceWithMember{Workspace: workspace, Member: member}, nil
+	return domain.WorkspaceWithMember{Workspace: workspace, Membership: member}, nil
 }
 
 func (w *Workspace) Delete(ctx context.Context, workspaceID, userID string) error {
