@@ -37,7 +37,7 @@ func scanNote(row pgx.Row) (domain.Note, error) {
 
 func scanNotes(rows pgx.Rows) ([]domain.Note, error) {
 	defer rows.Close()
-	data := make([]domain.Note, 0)
+	var data []domain.Note
 	for rows.Next() {
 		var n domain.Note
 		if err := rows.Scan(

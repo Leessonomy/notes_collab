@@ -77,7 +77,7 @@ func (r *WorkspaceRepo) ListByMember(ctx context.Context, userID string) ([]doma
 	}
 	defer rows.Close()
 
-	data := make([]domain.WorkspaceWithMember, 0)
+	var data []domain.WorkspaceWithMember
 	for rows.Next() {
 		var (
 			item = domain.WorkspaceWithMember{Member: domain.WorkspaceMember{UserID: userID}}
