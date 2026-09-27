@@ -1,12 +1,18 @@
-package app
+package config
 
 import (
 	"errors"
 	"os"
 	"time"
+
+	"go.uber.org/fx"
 )
 
-type config struct {
+var Module = fx.Module("config",
+	fx.Provide(Load),
+)
+
+type Config struct {
 	Port          string
 	DatabaseURL   string
 	JWTSecret     string
@@ -16,7 +22,7 @@ type config struct {
 	RefreshExpire time.Duration
 }
 
-func loadConfig() (*config, error) {
+func Load() (*Config, error) {
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
 		return nil, errors.New("DATABASE_URL is required")
@@ -27,7 +33,7 @@ func loadConfig() (*config, error) {
 		return nil, errors.New("JWT_SECRET is required")
 	}
 
-	return &config{
+	return &Config{
 		Port:          envOr("PORT", "8080"),
 		DatabaseURL:   databaseURL,
 		JWTSecret:     jwtSecret,

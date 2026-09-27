@@ -1,62 +1,58 @@
 package app
 
 import (
-	"context"
-	"errors"
-	"log"
-	"net/http"
-	dbconfig "notes-collab-api/config"
+	"notes-collab-api/internal/config"
+	"notes-collab-api/internal/controller"
+	"notes-collab-api/internal/repository"
+	"notes-collab-api/internal/usecase"
+	"notes-collab-api/internal/utils"
 	"time"
+
+	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 )
 
-func Run(ctx context.Context) error {
-	cfg, err := loadConfig()
-	if err != nil {
-		return err
-	}
+func Run() {
+	fx.New(options()).Run()
+}
 
-	if err := dbconfig.Migrate(ctx, cfg.DatabaseURL); err != nil {
-		return err
-	}
+func options() fx.Option {
+	return fx.Options(
+		fx.WithLogger(func() fxevent.Logger { return errorLogger{} }),
+		fx.StopTimeout(10*time.Second),
 
-	pool, err := createPostgres(ctx, cfg.DatabaseURL)
-	if err != nil {
-		return err
-	}
-	defer pool.Close()
+		config.Module,
+		postgresModule,
+		repository.Module,
+		usecase.Module,
+		controller.Module,
+		serverModule,
 
-	srv := &http.Server{
-		Addr:              ":" + cfg.Port,
-		Handler:           createHandler(cfg, pool),
-		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       15 * time.Second,
-		WriteTimeout:      15 * time.Second,
-		IdleTimeout:       60 * time.Second,
-	}
+		fx.Provide(
+			utils.NewJWT,
+			bindSession,
+			bindUserRepo,
+			bindTokenRepo,
+			bindNoteRepo,
+			bindWorkspaceRepo,
+			bindWorkspaceMemberRepo,
+		),
 
-	errCh := make(chan error, 1)
+		fx.Invoke(runMigrations),
+		fx.Invoke(startServer),
+	)
+}
 
-	go func() {
-		log.Printf("listening on :%s", cfg.Port)
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			errCh <- err
-		}
-	}()
+func bindSession(t *utils.Token) usecase.Session { return t }
 
-	select {
-	case err := <-errCh:
-		return err
-	case <-ctx.Done():
-	}
+func bindUserRepo(r *repository.UserRepo) usecase.UserRepo { return r }
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func bindTokenRepo(r *repository.RefreshTokenRepo) usecase.TokenRepo { return r }
 
-	if err := srv.Shutdown(shutdownCtx); err != nil {
-		return err
-	}
+func bindNoteRepo(r *repository.NoteRepo) usecase.NoteRepo { return r }
 
-	log.Println("stopped")
+func bindWorkspaceRepo(r *repository.WorkspaceRepo) usecase.WorkspaceRepo { return r }
 
-	return nil
+func bindWorkspaceMemberRepo(r *repository.WorkspaceMemberRepo) usecase.WorkspaceMemberRepo {
+	return r
 }

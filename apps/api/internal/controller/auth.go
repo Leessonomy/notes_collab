@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"notes-collab-api/internal/config"
 	"notes-collab-api/internal/domain"
 	"notes-collab-api/internal/dto"
 	"notes-collab-api/internal/usecase"
@@ -16,10 +17,10 @@ type AuthController struct {
 	secureCookies bool
 }
 
-func NewAuthController(authUC *usecase.Auth, isSecure bool) *AuthController {
+func NewAuthController(authUC *usecase.Auth, cfg *config.Config) *AuthController {
 	return &AuthController{
 		authUseCase:   authUC,
-		secureCookies: isSecure,
+		secureCookies: cfg.CookieSecure,
 	}
 }
 

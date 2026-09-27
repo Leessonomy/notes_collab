@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"notes-collab-api/internal/config"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -23,15 +24,11 @@ type Token struct {
 	refreshExpire time.Duration
 }
 
-func NewJWT(
-	accessSecret string,
-	accessExpire time.Duration,
-	refreshExpire time.Duration,
-) *Token {
+func NewJWT(cfg *config.Config) *Token {
 	return &Token{
-		accessSecret:  accessSecret,
-		accessExpire:  accessExpire,
-		refreshExpire: refreshExpire,
+		accessSecret:  cfg.JWTSecret,
+		accessExpire:  cfg.AccessExpire,
+		refreshExpire: cfg.RefreshExpire,
 	}
 }
 
