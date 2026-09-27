@@ -5,18 +5,18 @@ import (
 	"notes-collab-api/internal/config"
 	"notes-collab-api/internal/controller"
 	"notes-collab-api/internal/middleware"
-	"notes-collab-api/internal/utils"
+	"notes-collab-api/internal/token"
 )
 
 func buildHandlers(
 	cfg *config.Config,
-	jwt *utils.Token,
+	tokens *token.Manager,
 	authCtrl *controller.AuthController,
 	noteCtrl *controller.NoteController,
 	workspaceCtrl *controller.WorkspaceController,
 ) http.Handler {
 	protected := func(h http.HandlerFunc) http.Handler {
-		return middleware.RequireAuth(jwt)(h)
+		return middleware.RequireAuth(tokens)(h)
 	}
 
 	mux := http.NewServeMux()
@@ -41,18 +41,5 @@ func buildHandlers(
 	mux.Handle("PATCH /api/workspaces/{id}", protected(workspaceCtrl.UpdateWorkspace))
 	mux.Handle("DELETE /api/workspaces/{id}", protected(workspaceCtrl.DeleteWorkspace))
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", cfg.CORSOrigin)
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Add("Vary", "Origin")
-
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		mux.ServeHTTP(w, r)
-	})
+	return middleware.CORS(cfg.CORSOrigin)(mux)
 }

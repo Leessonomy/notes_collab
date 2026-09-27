@@ -2,10 +2,11 @@ package middleware
 
 import (
 	"net/http"
+	"notes-collab-api/internal/token"
 	"notes-collab-api/internal/utils"
 )
 
-func RequireAuth(jwt *utils.Token) func(http.Handler) http.Handler {
+func RequireAuth(tokens *token.Manager) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie(utils.AccessCookieName)
@@ -14,7 +15,7 @@ func RequireAuth(jwt *utils.Token) func(http.Handler) http.Handler {
 				return
 			}
 
-			userID, err := jwt.ParseAccessToken(cookie.Value)
+			userID, err := tokens.ParseAccessToken(cookie.Value)
 			if err != nil {
 				utils.Unauthorized(w)
 				return

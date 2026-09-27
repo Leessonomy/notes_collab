@@ -4,8 +4,8 @@ import (
 	"notes-collab-api/internal/config"
 	"notes-collab-api/internal/controller"
 	"notes-collab-api/internal/repository"
+	"notes-collab-api/internal/token"
 	"notes-collab-api/internal/usecase"
-	"notes-collab-api/internal/utils"
 	"time"
 
 	"go.uber.org/fx"
@@ -22,6 +22,7 @@ func options() fx.Option {
 		fx.StopTimeout(10*time.Second),
 
 		config.Module,
+		token.Module,
 		postgresModule,
 		repository.Module,
 		usecase.Module,
@@ -29,7 +30,6 @@ func options() fx.Option {
 		serverModule,
 
 		fx.Provide(
-			utils.NewJWT,
 			bindSession,
 			bindUserRepo,
 			bindTokenRepo,
@@ -43,7 +43,7 @@ func options() fx.Option {
 	)
 }
 
-func bindSession(t *utils.Token) usecase.Session { return t }
+func bindSession(m *token.Manager) usecase.Session { return m }
 
 func bindUserRepo(r *repository.UserRepo) usecase.UserRepo { return r }
 
