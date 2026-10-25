@@ -8,7 +8,7 @@ import (
 	"notes-collab-api/internal/token"
 )
 
-func buildHandlers(
+func newHandler(
 	cfg *config.Config,
 	tokens *token.Manager,
 	authCtrl *controller.AuthController,

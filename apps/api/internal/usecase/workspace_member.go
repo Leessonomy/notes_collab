@@ -10,15 +10,15 @@ type WorkspaceMemberRepo interface {
 	Get(ctx context.Context, workspaceID, userID string) (domain.WorkspaceMember, error)
 }
 
-func checkAccessRights(ctx context.Context, members WorkspaceMemberRepo, workspaceID, userID string) (domain.WorkspaceMember, domain.Rights, error) {
+func getMember(ctx context.Context, members WorkspaceMemberRepo, workspaceID, userID string) (domain.WorkspaceMember, error) {
 	m, err := members.Get(ctx, workspaceID, userID)
 
 	if errors.Is(err, domain.ErrNotMember) {
-		return domain.WorkspaceMember{}, domain.Rights{}, domain.ErrForbidden
+		return domain.WorkspaceMember{}, domain.ErrForbidden
 	}
 	if err != nil {
-		return domain.WorkspaceMember{}, domain.Rights{}, err
+		return domain.WorkspaceMember{}, err
 	}
 
-	return m, m.Role.Rights(), nil
+	return m, nil
 }

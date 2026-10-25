@@ -14,7 +14,7 @@ import (
 
 var serverModule = fx.Module("server",
 	fx.Provide(
-		buildHandlers,
+		newHandler,
 		newServer,
 	),
 )

@@ -1,6 +1,9 @@
 package dto
 
-import "time"
+import (
+	"notes-collab-api/internal/domain"
+	"time"
+)
 
 type CreateWorkspaceInput struct {
 	OwnerID string `json:"-" validate:"required"`
@@ -14,8 +17,8 @@ type UpdateWorkspaceInput struct {
 }
 
 type MembershipOutput struct {
-	Role     string    `json:"role"`
-	JoinedAt time.Time `json:"joinedAt"`
+	Role     domain.Role `json:"role"`
+	JoinedAt time.Time   `json:"joinedAt"`
 }
 
 type WorkspaceOutput struct {

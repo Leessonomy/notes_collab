@@ -96,7 +96,7 @@ func (w *Workspace) ListWithNotes(ctx context.Context, userID string) ([]dto.Wor
 				Name:    ws.Name,
 				OwnerID: ws.OwnerID,
 				Membership: dto.MembershipOutput{
-					Role:     string(ws.Membership.Role),
+					Role:     ws.Membership.Role,
 					JoinedAt: ws.Membership.JoinedAt,
 				},
 				CreatedAt: ws.CreatedAt,
@@ -114,11 +114,11 @@ func (w *Workspace) Update(ctx context.Context, input dto.UpdateWorkspaceInput) 
 		return domain.WorkspaceWithMember{}, err
 	}
 
-	member, rights, err := checkAccessRights(ctx, w.workspaceMemberRepo, input.WorkspaceID, input.UserID)
+	member, err := getMember(ctx, w.workspaceMemberRepo, input.WorkspaceID, input.UserID)
 	if err != nil {
 		return domain.WorkspaceWithMember{}, err
 	}
-	if !rights.Manage {
+	if !member.Role.Rights().Manage {
 		return domain.WorkspaceWithMember{}, domain.ErrForbidden
 	}
 
@@ -131,11 +131,11 @@ func (w *Workspace) Update(ctx context.Context, input dto.UpdateWorkspaceInput) 
 }
 
 func (w *Workspace) Delete(ctx context.Context, workspaceID, userID string) error {
-	_, rights, err := checkAccessRights(ctx, w.workspaceMemberRepo, workspaceID, userID)
+	member, err := getMember(ctx, w.workspaceMemberRepo, workspaceID, userID)
 	if err != nil {
 		return err
 	}
-	if !rights.Manage {
+	if !member.Role.Rights().Manage {
 		return domain.ErrForbidden
 	}
 

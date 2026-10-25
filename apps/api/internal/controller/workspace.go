@@ -50,7 +50,7 @@ func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Req
 		Name:    workspace.Name,
 		OwnerID: workspace.OwnerID,
 		Membership: dto.MembershipOutput{
-			Role:     string(workspace.Membership.Role),
+			Role:     workspace.Membership.Role,
 			JoinedAt: workspace.Membership.JoinedAt,
 		},
 		CreatedAt: workspace.CreatedAt,
@@ -80,7 +80,7 @@ func (c *WorkspaceController) UpdateWorkspace(w http.ResponseWriter, r *http.Req
 		Name:    workspace.Name,
 		OwnerID: workspace.OwnerID,
 		Membership: dto.MembershipOutput{
-			Role:     string(workspace.Membership.Role),
+			Role:     workspace.Membership.Role,
 			JoinedAt: workspace.Membership.JoinedAt,
 		},
 		CreatedAt: workspace.CreatedAt,

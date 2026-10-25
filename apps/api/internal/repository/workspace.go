@@ -79,23 +79,19 @@ func (r *WorkspaceRepo) ListByMember(ctx context.Context, userID string) ([]doma
 
 	var data []domain.WorkspaceWithMember
 	for rows.Next() {
-		var (
-			item = domain.WorkspaceWithMember{Membership: domain.WorkspaceMember{UserID: userID}}
-			role string
-		)
+		item := domain.WorkspaceWithMember{Membership: domain.WorkspaceMember{UserID: userID}}
 		if err := rows.Scan(
 			&item.ID,
 			&item.Name,
 			&item.OwnerID,
 			&item.CreatedAt,
 			&item.UpdatedAt,
-			&role,
+			&item.Membership.Role,
 			&item.Membership.JoinedAt,
 		); err != nil {
 			return nil, err
 		}
 		item.Membership.WorkspaceID = item.ID
-		item.Membership.Role = domain.Role(role)
 		data = append(data, item)
 	}
 

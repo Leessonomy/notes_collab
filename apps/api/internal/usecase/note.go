@@ -32,11 +32,11 @@ func (n *Note) GetByID(ctx context.Context, noteID, userID string) (domain.Note,
 		return domain.Note{}, err
 	}
 
-	_, rights, err := checkAccessRights(ctx, n.workspaceMemberRepo, note.WorkspaceID, userID)
+	member, err := getMember(ctx, n.workspaceMemberRepo, note.WorkspaceID, userID)
 	if err != nil {
 		return domain.Note{}, err
 	}
-	if !rights.Read {
+	if !member.Role.Rights().Read {
 		return domain.Note{}, domain.ErrForbidden
 	}
 
@@ -48,11 +48,11 @@ func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.No
 		return domain.Note{}, err
 	}
 
-	_, rights, err := checkAccessRights(ctx, n.workspaceMemberRepo, input.WorkspaceID, input.OwnerID)
+	member, err := getMember(ctx, n.workspaceMemberRepo, input.WorkspaceID, input.OwnerID)
 	if err != nil {
 		return domain.Note{}, err
 	}
-	if !rights.Write {
+	if !member.Role.Rights().Write {
 		return domain.Note{}, domain.ErrForbidden
 	}
 
@@ -85,11 +85,11 @@ func (n *Note) Update(ctx context.Context, input dto.UpdateNoteInput) (domain.No
 		return domain.Note{}, err
 	}
 
-	_, rights, err := checkAccessRights(ctx, n.workspaceMemberRepo, note.WorkspaceID, input.UserID)
+	member, err := getMember(ctx, n.workspaceMemberRepo, note.WorkspaceID, input.UserID)
 	if err != nil {
 		return domain.Note{}, err
 	}
-	if !rights.Write {
+	if !member.Role.Rights().Write {
 		return domain.Note{}, domain.ErrForbidden
 	}
 
@@ -102,11 +102,11 @@ func (n *Note) Delete(ctx context.Context, noteID, userID string) error {
 		return err
 	}
 
-	_, rights, err := checkAccessRights(ctx, n.workspaceMemberRepo, note.WorkspaceID, userID)
+	member, err := getMember(ctx, n.workspaceMemberRepo, note.WorkspaceID, userID)
 	if err != nil {
 		return err
 	}
-	if !rights.Write {
+	if !member.Role.Rights().Write {
 		return domain.ErrForbidden
 	}
 

@@ -18,16 +18,13 @@ func NewWorkspaceMemberRepo(db *pgxpool.Pool) *WorkspaceMemberRepo {
 }
 
 func (r *WorkspaceMemberRepo) Get(ctx context.Context, workspaceID, userID string) (domain.WorkspaceMember, error) {
-	var (
-		m    = domain.WorkspaceMember{WorkspaceID: workspaceID, UserID: userID}
-		role string
-	)
+	m := domain.WorkspaceMember{WorkspaceID: workspaceID, UserID: userID}
 
 	err := r.db.QueryRow(ctx,
 		`SELECT role, joined_at FROM workspace_members WHERE workspace_id = $1 AND user_id = $2`,
 		workspaceID,
 		userID,
-	).Scan(&role, &m.JoinedAt)
+	).Scan(&m.Role, &m.JoinedAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return domain.WorkspaceMember{}, domain.ErrNotMember
@@ -36,6 +33,5 @@ func (r *WorkspaceMemberRepo) Get(ctx context.Context, workspaceID, userID strin
 		return domain.WorkspaceMember{}, err
 	}
 
-	m.Role = domain.Role(role)
 	return m, nil
 }
