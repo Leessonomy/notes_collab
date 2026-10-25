@@ -4,11 +4,16 @@ import { HlmSidebarImports, provideHlmSidebarConfig } from '@spartan-ng/helm/sid
 import { AppHeaderComponent } from './app-header.component';
 import { AppSidebarComponent } from './app-sidebar.component';
 import { AppFacade } from '../app.facade';
+import { provideWorkspace } from '../features/workspace';
+import { provideNotes } from '../features/notes';
 
 @Component({
   selector: 'app-main-layout',
   imports: [...HlmSidebarImports, AppHeaderComponent, AppSidebarComponent, RouterOutlet],
   providers: [
+    provideWorkspace(),
+    provideNotes(),
+    AppFacade,
     provideHlmSidebarConfig({
       mobileBreakpoint: '768px',
       sidebarWidth: '320px',

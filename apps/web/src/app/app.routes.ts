@@ -1,9 +1,6 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout.component';
 import { AuthLayoutComponent } from './layout/auth-layout.component';
-import { provideWorkspace } from './features/workspace';
-import { provideNotes } from './features/notes';
-import { AppFacade } from './app.facade';
 import { authGuard, guestGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
@@ -22,7 +19,6 @@ export const routes: Routes = [
     path: 'app',
     canActivate: [authGuard],
     component: MainLayoutComponent,
-    providers: [provideWorkspace(), provideNotes(), AppFacade],
     children: [
       {
         path: '',

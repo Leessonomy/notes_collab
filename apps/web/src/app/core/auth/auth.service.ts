@@ -46,7 +46,10 @@ export class AuthService {
   }
 
   logout() {
-    return this.http.post('/api/auth/logout', {}).pipe(tap(() => this.setEndSession()));
+    return this.http.post('/api/auth/logout', {}).pipe(
+      catchError(() => of(null)),
+      tap(() => this.setEndSession()),
+    );
   }
 
   signup(credentials: SignUpCredentials) {
