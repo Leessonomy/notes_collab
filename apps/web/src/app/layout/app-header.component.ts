@@ -46,7 +46,7 @@ import { AuthService } from '../core/auth/auth.service';
 
       <div class="flex items-center gap-2 px-4 border-l border-border">
         <button hlmBtn variant="ghost" size="icon" (click)="toggleTheme()" class="rounded-full">
-          @if (isDarkModeOn) {
+          @if (isDarkModeOn()) {
             <ng-icon hlm name="lucideSun" size="sm" />
           } @else {
             <ng-icon hlm name="lucideMoon" size="sm" />

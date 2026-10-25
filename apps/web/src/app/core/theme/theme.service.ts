@@ -19,6 +19,8 @@ export class ThemeService {
     })()
   );
 
+  readonly isDarkModeOn = this._isDark.asReadonly();
+
   constructor() {
     effect(() => {
       document.documentElement.classList.toggle('dark', this._isDark());
@@ -27,10 +29,6 @@ export class ThemeService {
     effect(() => {
       localStorage.setItem(this.storageKey, this._isDark() ? 'dark' : 'light');
     });
-  }
-
-  get isDarkModeOn() {
-    return this._isDark();
   }
 
   toggle() {
