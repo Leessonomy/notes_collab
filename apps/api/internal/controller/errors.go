@@ -18,7 +18,10 @@ func domainError(w http.ResponseWriter, err error) {
 		http.Error(w, err.Error(), http.StatusConflict)
 	case errors.Is(err, domain.ErrNoteNotFound),
 		errors.Is(err, domain.ErrNoteByWorkspaceNotFound),
-		errors.Is(err, domain.ErrWorkspaceNotFound):
+		errors.Is(err, domain.ErrWorkspaceNotFound),
+		errors.Is(err, domain.ErrNotMember),
+		errors.Is(err, domain.ErrInviteNotFound),
+		errors.Is(err, domain.ErrInviteInvalid):
 		http.Error(w, err.Error(), http.StatusNotFound)
 	case errors.Is(err, domain.ErrInvalidCredentials),
 		errors.Is(err, domain.ErrTokenNotFound),

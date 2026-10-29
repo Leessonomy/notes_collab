@@ -7,5 +7,7 @@ var Module = fx.Module("usecase",
 		NewAuth,
 		NewNote,
 		NewWorkspace,
+		NewMember,
+		NewInvite,
 	),
 )

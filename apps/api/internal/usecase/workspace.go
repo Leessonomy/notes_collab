@@ -10,50 +10,51 @@ import (
 )
 
 type WorkspaceRepo interface {
-	Create(ctx context.Context, w domain.Workspace) error
-	ListByMember(ctx context.Context, userID string) ([]domain.WorkspaceWithMember, error)
+	Create(ctx context.Context, w domain.WorkspaceWithMembership) error
+	ListByMember(ctx context.Context, userID string) ([]domain.WorkspaceWithMembership, error)
 	Update(ctx context.Context, workspaceID, name string) (domain.Workspace, error)
 	Delete(ctx context.Context, workspaceID string) error
 }
 
 type Workspace struct {
-	workspaceRepo       WorkspaceRepo
-	noteRepo            NoteRepo
-	workspaceMemberRepo WorkspaceMemberRepo
+	workspaceRepo  WorkspaceRepo
+	noteRepo       NoteRepo
+	membershipRepo MembershipRepo
 }
 
-func NewWorkspace(workspaceRepo WorkspaceRepo, noteRepo NoteRepo, workspaceMemberRepo WorkspaceMemberRepo) *Workspace {
-	return &Workspace{workspaceRepo: workspaceRepo, noteRepo: noteRepo, workspaceMemberRepo: workspaceMemberRepo}
+func NewWorkspace(workspaceRepo WorkspaceRepo, noteRepo NoteRepo, membershipRepo MembershipRepo) *Workspace {
+	return &Workspace{workspaceRepo: workspaceRepo, noteRepo: noteRepo, membershipRepo: membershipRepo}
 }
 
-func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) (domain.WorkspaceWithMember, error) {
+func (w *Workspace) Create(ctx context.Context, input dto.CreateWorkspaceInput) (domain.WorkspaceWithMembership, error) {
 	if err := validateInput(&input); err != nil {
-		return domain.WorkspaceWithMember{}, err
+		return domain.WorkspaceWithMembership{}, err
 	}
 
 	now := time.Now().UTC()
 
-	workspace := domain.Workspace{
-		ID:        uuid.NewString(),
-		Name:      input.Name,
-		OwnerID:   input.OwnerID,
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
+	workspaceID := uuid.NewString()
 
-	if err := w.workspaceRepo.Create(ctx, workspace); err != nil {
-		return domain.WorkspaceWithMember{}, err
-	}
-
-	return domain.WorkspaceWithMember{
-		Workspace: workspace,
-		Membership: domain.WorkspaceMember{
-			WorkspaceID: workspace.ID,
+	workspace := domain.WorkspaceWithMembership{
+		Workspace: domain.Workspace{
+			ID:        workspaceID,
+			Name:      input.Name,
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+		Membership: domain.Membership{
+			WorkspaceID: workspaceID,
 			UserID:      input.OwnerID,
 			Role:        domain.Owner,
 			JoinedAt:    now,
 		},
-	}, nil
+	}
+
+	if err := w.workspaceRepo.Create(ctx, workspace); err != nil {
+		return domain.WorkspaceWithMembership{}, err
+	}
+
+	return workspace, nil
 }
 
 func (w *Workspace) ListWithNotes(ctx context.Context, userID string) ([]dto.WorkspaceWithNotes, error) {
@@ -92,9 +93,8 @@ func (w *Workspace) ListWithNotes(ctx context.Context, userID string) ([]dto.Wor
 
 		result = append(result, dto.WorkspaceWithNotes{
 			WorkspaceOutput: dto.WorkspaceOutput{
-				ID:      ws.ID,
-				Name:    ws.Name,
-				OwnerID: ws.OwnerID,
+				ID:   ws.ID,
+				Name: ws.Name,
 				Membership: dto.MembershipOutput{
 					Role:     ws.Membership.Role,
 					JoinedAt: ws.Membership.JoinedAt,
@@ -109,33 +109,33 @@ func (w *Workspace) ListWithNotes(ctx context.Context, userID string) ([]dto.Wor
 	return result, nil
 }
 
-func (w *Workspace) Update(ctx context.Context, input dto.UpdateWorkspaceInput) (domain.WorkspaceWithMember, error) {
+func (w *Workspace) Update(ctx context.Context, input dto.UpdateWorkspaceInput) (domain.WorkspaceWithMembership, error) {
 	if err := validateInput(&input); err != nil {
-		return domain.WorkspaceWithMember{}, err
+		return domain.WorkspaceWithMembership{}, err
 	}
 
-	member, err := getMember(ctx, w.workspaceMemberRepo, input.WorkspaceID, input.UserID)
+	membership, err := getMembership(ctx, w.membershipRepo, input.WorkspaceID, input.UserID)
 	if err != nil {
-		return domain.WorkspaceWithMember{}, err
+		return domain.WorkspaceWithMembership{}, err
 	}
-	if !member.Role.Rights().Manage {
-		return domain.WorkspaceWithMember{}, domain.ErrForbidden
+	if !membership.Role.Rights().Manage {
+		return domain.WorkspaceWithMembership{}, domain.ErrForbidden
 	}
 
 	workspace, err := w.workspaceRepo.Update(ctx, input.WorkspaceID, input.Name)
 	if err != nil {
-		return domain.WorkspaceWithMember{}, err
+		return domain.WorkspaceWithMembership{}, err
 	}
 
-	return domain.WorkspaceWithMember{Workspace: workspace, Membership: member}, nil
+	return domain.WorkspaceWithMembership{Workspace: workspace, Membership: membership}, nil
 }
 
 func (w *Workspace) Delete(ctx context.Context, workspaceID, userID string) error {
-	member, err := getMember(ctx, w.workspaceMemberRepo, workspaceID, userID)
+	membership, err := getMembership(ctx, w.membershipRepo, workspaceID, userID)
 	if err != nil {
 		return err
 	}
-	if !member.Role.Rights().Manage {
+	if !membership.Role.Rights().Manage {
 		return domain.ErrForbidden
 	}
 

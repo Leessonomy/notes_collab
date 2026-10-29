@@ -46,9 +46,8 @@ func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Req
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, dto.WorkspaceOutput{
-		ID:      workspace.ID,
-		Name:    workspace.Name,
-		OwnerID: workspace.OwnerID,
+		ID:   workspace.ID,
+		Name: workspace.Name,
 		Membership: dto.MembershipOutput{
 			Role:     workspace.Membership.Role,
 			JoinedAt: workspace.Membership.JoinedAt,
@@ -76,9 +75,8 @@ func (c *WorkspaceController) UpdateWorkspace(w http.ResponseWriter, r *http.Req
 	}
 
 	utils.WriteJSON(w, http.StatusOK, dto.WorkspaceOutput{
-		ID:      workspace.ID,
-		Name:    workspace.Name,
-		OwnerID: workspace.OwnerID,
+		ID:   workspace.ID,
+		Name: workspace.Name,
 		Membership: dto.MembershipOutput{
 			Role:     workspace.Membership.Role,
 			JoinedAt: workspace.Membership.JoinedAt,

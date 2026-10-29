@@ -9,8 +9,12 @@ var (
 	ErrNoteNotFound            = errors.New("note not found")
 	ErrWorkspaceNotFound       = errors.New("workspace not found")
 
-	ErrNotMember = errors.New("not a workspace member")
-	ErrForbidden = errors.New("forbidden")
+	ErrNotMember     = errors.New("not a workspace member")
+	ErrAlreadyMember = errors.New("already a workspace member")
+	ErrForbidden     = errors.New("forbidden")
+
+	ErrInviteNotFound = errors.New("invite not found")
+	ErrInviteInvalid  = errors.New("invite is invalid or expired")
 
 	ErrUserNotFound       = errors.New("user not found")
 	ErrEmailTaken         = errors.New("email already taken")

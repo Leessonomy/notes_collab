@@ -7,5 +7,7 @@ var Module = fx.Module("controller",
 		NewAuthController,
 		NewNoteController,
 		NewWorkspaceController,
+		NewMemberController,
+		NewInviteController,
 	),
 )

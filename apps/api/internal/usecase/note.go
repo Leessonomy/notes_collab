@@ -18,12 +18,12 @@ type NoteRepo interface {
 }
 
 type Note struct {
-	noteRepo            NoteRepo
-	workspaceMemberRepo WorkspaceMemberRepo
+	noteRepo       NoteRepo
+	membershipRepo MembershipRepo
 }
 
-func NewNote(noteRepo NoteRepo, workspaceMemberRepo WorkspaceMemberRepo) *Note {
-	return &Note{noteRepo: noteRepo, workspaceMemberRepo: workspaceMemberRepo}
+func NewNote(noteRepo NoteRepo, membershipRepo MembershipRepo) *Note {
+	return &Note{noteRepo: noteRepo, membershipRepo: membershipRepo}
 }
 
 func (n *Note) GetByID(ctx context.Context, noteID, userID string) (domain.Note, error) {
@@ -32,11 +32,11 @@ func (n *Note) GetByID(ctx context.Context, noteID, userID string) (domain.Note,
 		return domain.Note{}, err
 	}
 
-	member, err := getMember(ctx, n.workspaceMemberRepo, note.WorkspaceID, userID)
+	membership, err := getMembership(ctx, n.membershipRepo, note.WorkspaceID, userID)
 	if err != nil {
 		return domain.Note{}, err
 	}
-	if !member.Role.Rights().Read {
+	if !membership.Role.Rights().Read {
 		return domain.Note{}, domain.ErrForbidden
 	}
 
@@ -48,11 +48,11 @@ func (n *Note) Create(ctx context.Context, input dto.CreateNoteInput) (domain.No
 		return domain.Note{}, err
 	}
 
-	member, err := getMember(ctx, n.workspaceMemberRepo, input.WorkspaceID, input.OwnerID)
+	membership, err := getMembership(ctx, n.membershipRepo, input.WorkspaceID, input.OwnerID)
 	if err != nil {
 		return domain.Note{}, err
 	}
-	if !member.Role.Rights().Write {
+	if !membership.Role.Rights().Write {
 		return domain.Note{}, domain.ErrForbidden
 	}
 
@@ -85,11 +85,11 @@ func (n *Note) Update(ctx context.Context, input dto.UpdateNoteInput) (domain.No
 		return domain.Note{}, err
 	}
 
-	member, err := getMember(ctx, n.workspaceMemberRepo, note.WorkspaceID, input.UserID)
+	membership, err := getMembership(ctx, n.membershipRepo, note.WorkspaceID, input.UserID)
 	if err != nil {
 		return domain.Note{}, err
 	}
-	if !member.Role.Rights().Write {
+	if !membership.Role.Rights().Write {
 		return domain.Note{}, domain.ErrForbidden
 	}
 
@@ -102,11 +102,11 @@ func (n *Note) Delete(ctx context.Context, noteID, userID string) error {
 		return err
 	}
 
-	member, err := getMember(ctx, n.workspaceMemberRepo, note.WorkspaceID, userID)
+	membership, err := getMembership(ctx, n.membershipRepo, note.WorkspaceID, userID)
 	if err != nil {
 		return err
 	}
-	if !member.Role.Rights().Write {
+	if !membership.Role.Rights().Write {
 		return domain.ErrForbidden
 	}
 

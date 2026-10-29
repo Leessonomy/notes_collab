@@ -35,7 +35,8 @@ func options() fx.Option {
 			bindTokenRepo,
 			bindNoteRepo,
 			bindWorkspaceRepo,
-			bindWorkspaceMemberRepo,
+			bindMembershipRepo,
+			bindInviteRepo,
 		),
 
 		fx.Invoke(runMigrations),
@@ -53,6 +54,6 @@ func bindNoteRepo(r *repository.NoteRepo) usecase.NoteRepo { return r }
 
 func bindWorkspaceRepo(r *repository.WorkspaceRepo) usecase.WorkspaceRepo { return r }
 
-func bindWorkspaceMemberRepo(r *repository.WorkspaceMemberRepo) usecase.WorkspaceMemberRepo {
-	return r
-}
+func bindMembershipRepo(r *repository.MembershipRepo) usecase.MembershipRepo { return r }
+
+func bindInviteRepo(r *repository.InviteRepo) usecase.InviteRepo { return r }

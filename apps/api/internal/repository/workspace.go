@@ -22,7 +22,6 @@ func scanWorkspace(row pgx.Row) (domain.Workspace, error) {
 	err := row.Scan(
 		&w.ID,
 		&w.Name,
-		&w.OwnerID,
 		&w.CreatedAt,
 		&w.UpdatedAt,
 	)
@@ -33,17 +32,14 @@ func scanWorkspace(row pgx.Row) (domain.Workspace, error) {
 	return w, nil
 }
 
-func (r *WorkspaceRepo) Create(ctx context.Context, w domain.Workspace) error {
+func (r *WorkspaceRepo) Create(ctx context.Context, w domain.WorkspaceWithMembership) error {
 	return pgx.BeginFunc(ctx, r.db, func(tx pgx.Tx) error {
 		_, err := tx.Exec(ctx, `
-            INSERT INTO workspaces (
-                id, name, owner_id, created_at, updated_at
-            )
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO workspaces (id, name, created_at, updated_at)
+            VALUES ($1, $2, $3, $4)
         `,
 			w.ID,
 			w.Name,
-			w.OwnerID,
 			w.CreatedAt,
 			w.UpdatedAt,
 		)
@@ -56,17 +52,17 @@ func (r *WorkspaceRepo) Create(ctx context.Context, w domain.Workspace) error {
             VALUES ($1, $2, $3, $4)
         `,
 			w.ID,
-			w.OwnerID,
-			domain.Owner,
-			w.CreatedAt,
+			w.Membership.UserID,
+			w.Membership.Role,
+			w.Membership.JoinedAt,
 		)
 		return err
 	})
 }
 
-func (r *WorkspaceRepo) ListByMember(ctx context.Context, userID string) ([]domain.WorkspaceWithMember, error) {
+func (r *WorkspaceRepo) ListByMember(ctx context.Context, userID string) ([]domain.WorkspaceWithMembership, error) {
 	rows, err := r.db.Query(ctx, `
-        SELECT w.id, w.name, w.owner_id, w.created_at, w.updated_at, m.role, m.joined_at
+        SELECT w.id, w.name, w.created_at, w.updated_at, m.role, m.joined_at
         FROM workspaces w
         JOIN workspace_members m ON m.workspace_id = w.id
         WHERE m.user_id = $1
@@ -77,13 +73,12 @@ func (r *WorkspaceRepo) ListByMember(ctx context.Context, userID string) ([]doma
 	}
 	defer rows.Close()
 
-	var data []domain.WorkspaceWithMember
+	var data []domain.WorkspaceWithMembership
 	for rows.Next() {
-		item := domain.WorkspaceWithMember{Membership: domain.WorkspaceMember{UserID: userID}}
+		item := domain.WorkspaceWithMembership{Membership: domain.Membership{UserID: userID}}
 		if err := rows.Scan(
 			&item.ID,
 			&item.Name,
-			&item.OwnerID,
 			&item.CreatedAt,
 			&item.UpdatedAt,
 			&item.Membership.Role,
@@ -107,7 +102,7 @@ func (r *WorkspaceRepo) Update(ctx context.Context, workspaceID, name string) (d
         UPDATE workspaces
         SET name = $1, updated_at = NOW()
         WHERE id = $2
-        RETURNING id, name, owner_id, created_at, updated_at
+        RETURNING id, name, created_at, updated_at
     `, name, workspaceID)
 
 	return scanWorkspace(row)

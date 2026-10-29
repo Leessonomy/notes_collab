@@ -8,6 +8,7 @@ var Module = fx.Module("repository",
 		NewRefreshTokenRepo,
 		NewNoteRepo,
 		NewWorkspaceRepo,
-		NewWorkspaceMemberRepo,
+		NewMembershipRepo,
+		NewInviteRepo,
 	),
 )

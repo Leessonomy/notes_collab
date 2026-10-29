@@ -14,6 +14,8 @@ func newHandler(
 	authCtrl *controller.AuthController,
 	noteCtrl *controller.NoteController,
 	workspaceCtrl *controller.WorkspaceController,
+	memberCtrl *controller.MemberController,
+	inviteCtrl *controller.InviteController,
 ) http.Handler {
 	protected := func(h http.HandlerFunc) http.Handler {
 		return middleware.RequireAuth(tokens)(h)
@@ -40,6 +42,17 @@ func newHandler(
 	mux.Handle("POST /api/workspaces", protected(workspaceCtrl.CreateWorkspace))
 	mux.Handle("PATCH /api/workspaces/{id}", protected(workspaceCtrl.UpdateWorkspace))
 	mux.Handle("DELETE /api/workspaces/{id}", protected(workspaceCtrl.DeleteWorkspace))
+
+	mux.Handle("GET /api/workspaces/{id}/members", protected(memberCtrl.ListMembers))
+	mux.Handle("PATCH /api/workspaces/{id}/members/{memberId}", protected(memberCtrl.ChangeMemberRole))
+	mux.Handle("DELETE /api/workspaces/{id}/members/{memberId}", protected(memberCtrl.RemoveMember))
+
+	mux.Handle("POST /api/workspaces/{id}/invites", protected(inviteCtrl.CreateInvite))
+	mux.Handle("GET /api/workspaces/{id}/invites", protected(inviteCtrl.ListInvites))
+	mux.Handle("DELETE /api/workspaces/{id}/invites/{inviteId}", protected(inviteCtrl.RevokeInvite))
+
+	mux.HandleFunc("GET /api/invites/{token}", inviteCtrl.GetInvite)
+	mux.Handle("POST /api/invites/{token}/accept", protected(inviteCtrl.AcceptInvite))
 
 	return middleware.CORS(cfg.CORSOrigin)(mux)
 }
