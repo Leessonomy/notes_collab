@@ -52,6 +52,7 @@ func (c *WorkspaceController) CreateWorkspace(w http.ResponseWriter, r *http.Req
 			Role:     workspace.Membership.Role,
 			JoinedAt: workspace.Membership.JoinedAt,
 		},
+		Rights:    dto.RightsOutput(workspace.Membership.Role.Rights()),
 		CreatedAt: workspace.CreatedAt,
 		UpdatedAt: workspace.UpdatedAt,
 	})
@@ -81,6 +82,7 @@ func (c *WorkspaceController) UpdateWorkspace(w http.ResponseWriter, r *http.Req
 			Role:     workspace.Membership.Role,
 			JoinedAt: workspace.Membership.JoinedAt,
 		},
+		Rights:    dto.RightsOutput(workspace.Membership.Role.Rights()),
 		CreatedAt: workspace.CreatedAt,
 		UpdatedAt: workspace.UpdatedAt,
 	})

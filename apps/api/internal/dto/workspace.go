@@ -21,10 +21,17 @@ type MembershipOutput struct {
 	JoinedAt time.Time   `json:"joinedAt"`
 }
 
+type RightsOutput struct {
+	Read   bool `json:"read"`
+	Write  bool `json:"write"`
+	Manage bool `json:"manage"`
+}
+
 type WorkspaceOutput struct {
 	ID         string           `json:"id"`
 	Name       string           `json:"name"`
 	Membership MembershipOutput `json:"membership"`
+	Rights     RightsOutput     `json:"rights"`
 	CreatedAt  time.Time        `json:"createdAt"`
 	UpdatedAt  time.Time        `json:"updatedAt"`
 }

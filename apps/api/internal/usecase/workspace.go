@@ -99,6 +99,7 @@ func (w *Workspace) ListWithNotes(ctx context.Context, userID string) ([]dto.Wor
 					Role:     ws.Membership.Role,
 					JoinedAt: ws.Membership.JoinedAt,
 				},
+				Rights:    dto.RightsOutput(ws.Membership.Role.Rights()),
 				CreatedAt: ws.CreatedAt,
 				UpdatedAt: ws.UpdatedAt,
 			},
