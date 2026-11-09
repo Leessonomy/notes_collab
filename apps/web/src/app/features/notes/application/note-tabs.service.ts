@@ -23,14 +23,14 @@ export class NoteTabsService {
   );
 
   readonly tabs = computed<Note[]>(() =>
-    this.openNoteIds().flatMap((noteId) => this.store.noteById(noteId) ?? []),
+    this.openNoteIds().flatMap((noteId) => this.store.find(noteId) ?? []),
   );
 
   readonly activeTab = computed(
     () => this.tabs().find((note) => note.id === this.activeNoteId()) ?? null,
   );
 
-  readonly currentNote = computed(() => this.store.noteById(this.activeNoteId()));
+  readonly currentNote = computed(() => this.store.find(this.activeNoteId()));
 
   openNote(noteId: string) {
     this.openNoteIds.update((ids) => (ids.includes(noteId) ? ids : [...ids, noteId]));

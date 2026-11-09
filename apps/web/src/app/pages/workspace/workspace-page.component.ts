@@ -1,28 +1,31 @@
-import { Component, computed, inject } from '@angular/core';
-import { WorkspaceFacade } from '../../features/workspace';
+import { Component, computed, effect, inject, input } from '@angular/core';
+import { MembersSheetComponent, WorkspaceFacade } from '../../features/workspace';
 import { NotesFacade, NoteGridComponent, Note } from '../../features/notes';
 import { ContentLayoutComponent } from '../../shared/ui/content-layout/content-layout.component';
 
 @Component({
   selector: 'app-workspace-page',
-  imports: [ContentLayoutComponent, NoteGridComponent],
+  imports: [ContentLayoutComponent, NoteGridComponent, MembersSheetComponent],
   template: `
     @if (currentWorkspace(); as workspace) {
       @let notes = workspaceNotes();
       <div class="h-full w-full overflow-auto bg-background">
         <content-layout>
-          <div class="mb-8">
-            <h1 class="text-3xl font-bold text-foreground mb-2">
-              {{ workspace.name }}
-            </h1>
-            <p class="text-muted-foreground">
-              {{ notes.length }} {{ notes.length === 1 ? 'note' : 'notes' }}
-            </p>
+          <div class="mb-8 flex items-start justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-bold text-foreground mb-2">
+                {{ workspace.name }}
+              </h1>
+              <p class="text-muted-foreground">
+                {{ notes.length }} {{ notes.length === 1 ? 'note' : 'notes' }}
+              </p>
+            </div>
+            <app-members-sheet [workspace]="workspace" />
           </div>
 
           <app-note-grid
             [notes]="notes"
-            [canCreate]="isAdmin"
+            [readonly]="!workspace.rights.write"
             (open)="openNote($event)"
             (create)="createNote()"
             (delete)="deleteNote($event)"
@@ -36,13 +39,21 @@ export class WorkspacePageComponent {
   private readonly workspaceFacade = inject(WorkspaceFacade);
   private readonly notesFacade = inject(NotesFacade);
 
+  readonly selectedWorkspaceId = input<string | undefined>(undefined, { alias: 'workspace' });
+
   readonly currentWorkspace = this.workspaceFacade.currentWorkspace;
-  readonly isAdmin = true;
 
   readonly workspaceNotes = computed(() => {
     const workspace = this.currentWorkspace();
     return workspace ? this.notesFacade.byWorkspace(workspace.id) : [];
   });
+
+  constructor() {
+    effect(() => {
+      const workspaceId = this.selectedWorkspaceId();
+      if (workspaceId) this.workspaceFacade.switch(workspaceId);
+    });
+  }
 
   createNote() {
     const workspace = this.currentWorkspace();

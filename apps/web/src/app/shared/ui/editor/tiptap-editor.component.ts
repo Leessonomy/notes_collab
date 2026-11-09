@@ -81,7 +81,7 @@ import { common, createLowlight } from 'lowlight';
   ],
   template: `
     <div class="tiptap-wrapper flex flex-col h-full">
-      @if (editor) {
+      @if (editor && !readonly()) {
       <div
         class="toolbar border-b border-border bg-background sticky top-0 z-10 p-2 flex flex-wrap gap-1 items-center"
       >
@@ -296,6 +296,7 @@ import { common, createLowlight } from 'lowlight';
 export class TiptapEditorComponent implements OnInit, OnDestroy {
   readonly content = input<string>('');
   readonly placeholder = input<string>('Start typing or press "/" for commands...');
+  readonly readonly = input(false);
   readonly contentChange = output<string>();
 
   private readonly editorContainer =
@@ -308,6 +309,10 @@ export class TiptapEditorComponent implements OnInit, OnDestroy {
       if (this.editor && this.editor.getHTML() !== newContent) {
         this.editor.commands.setContent(newContent, { emitUpdate: false });
       }
+    });
+
+    effect(() => {
+      this.editor?.setEditable(!this.readonly(), false);
     });
   }
 
@@ -327,6 +332,7 @@ export class TiptapEditorComponent implements OnInit, OnDestroy {
 
     this.editor = new Editor({
       element: container.nativeElement,
+      editable: !this.readonly(),
       extensions: [
         StarterKit.configure({
           heading: { levels: [1, 2, 3, 4, 5, 6] },

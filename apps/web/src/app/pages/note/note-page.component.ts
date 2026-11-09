@@ -1,4 +1,4 @@
-import { Component, inject, effect } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { TiptapEditorComponent } from '../../shared/ui/editor/tiptap-editor.component';
 import { ContentLayoutComponent } from '../../shared/ui/content-layout/content-layout.component';
 import {
@@ -7,6 +7,7 @@ import {
   PresenceService,
   NoteHeaderComponent,
 } from '../../features/notes';
+import { WorkspaceFacade } from '../../features/workspace';
 
 @Component({
   selector: 'app-note-page',
@@ -17,11 +18,16 @@ import {
         <app-note-header
           [note]="note"
           [onlineUsers]="onlineUsers()"
+          [readonly]="readonly()"
           (titleChange)="onTitleChange($event)"
         />
         <div class="flex-1 overflow-auto w-full">
           <content-layout>
-            <app-tiptap-editor [content]="note.content" (contentChange)="onContentChange($event)" />
+            <app-tiptap-editor
+              [content]="note.content"
+              [readonly]="readonly()"
+              (contentChange)="onContentChange($event)"
+            />
           </content-layout>
         </div>
       } @else {
@@ -43,8 +49,15 @@ export class NotePageComponent {
   private readonly notesFacade = inject(NotesFacade);
   private readonly noteTabs = inject(NoteTabsService);
   private readonly presenceService = inject(PresenceService);
+  private readonly workspaceFacade = inject(WorkspaceFacade);
 
   readonly currentNote = this.noteTabs.currentNote;
+
+  readonly readonly = computed(() => {
+    const note = this.currentNote();
+    const workspace = note ? this.workspaceFacade.find(note.workspaceId) : null;
+    return !workspace?.rights.write;
+  });
   readonly onlineUsers = this.presenceService.getOnlineUsersForNote();
 
   constructor() {

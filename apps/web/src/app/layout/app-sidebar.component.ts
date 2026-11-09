@@ -7,7 +7,7 @@ import { BrnCollapsibleImports } from '@spartan-ng/brain/collapsible';
 import { HlmCollapsibleImports } from '@spartan-ng/helm/collapsible';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { NotesFacade, NoteTabsService } from '../features/notes';
-import { WorkspaceFacade, WorkspaceInviteService } from '../features/workspace';
+import { Workspace, WorkspaceFacade } from '../features/workspace';
 import { AppFacade } from '../app.facade';
 import { appUrls } from '../core/app-urls';
 import {
@@ -16,7 +16,7 @@ import {
   lucideChevronRight,
   lucideSettings,
   lucideFolderOpen,
-  lucideUserPlus,
+  lucideDoorOpen,
   lucideTrash2,
   lucideX,
 } from '@ng-icons/lucide';
@@ -38,7 +38,7 @@ import {
       lucideChevronRight,
       lucideSettings,
       lucideFolderOpen,
-      lucideUserPlus,
+      lucideDoorOpen,
       lucideTrash2,
       lucideX,
     }),
@@ -59,11 +59,9 @@ import {
             </span>
           </div>
 
-          @if (isAdmin) {
-            <button hlmSidebarGroupAction (click)="createWorkspace()">
-              <ng-icon hlm name="lucidePlus" size="sm" />
-            </button>
-          }
+          <button hlmSidebarGroupAction (click)="createWorkspace()">
+            <ng-icon hlm name="lucidePlus" size="sm" />
+          </button>
 
           <div hlmSidebarGroupContent>
             <ul hlmSidebarMenu>
@@ -91,7 +89,7 @@ import {
                       />
                     </button>
 
-                    @if (isAdmin) {
+                    @if (workspace.rights.write) {
                       <button
                         hlmSidebarMenuAction
                         class="right-8 !top-1 !w-6"
@@ -100,7 +98,9 @@ import {
                       >
                         <ng-icon hlm name="lucidePlus" size="sm" />
                       </button>
+                    }
 
+                    @if (workspace.rights.manage) {
                       <button
                         hlmSidebarMenuAction
                         class="hover:text-destructive !top-1 !w-6"
@@ -108,6 +108,15 @@ import {
                         (click)="deleteWorkspace(workspace.id)"
                       >
                         <ng-icon hlm name="lucideTrash2" size="sm" />
+                      </button>
+                    } @else {
+                      <button
+                        hlmSidebarMenuAction
+                        class="hover:text-destructive !top-1 !w-6"
+                        [attr.aria-label]="'Leave ' + workspace.name"
+                        (click)="leaveWorkspace(workspace)"
+                      >
+                        <ng-icon hlm name="lucideDoorOpen" size="sm" />
                       </button>
                     }
 
@@ -124,36 +133,22 @@ import {
                               <span>{{ note.title || 'Untitled' }}</span>
                             </button>
 
-                            <button
-                              type="button"
-                              [attr.aria-label]="'Delete ' + (note.title || 'Untitled')"
-                              (click)="deleteNote(note.id)"
-                              class="text-sidebar-foreground/60 ring-sidebar-ring hover:bg-sidebar-accent hover:text-destructive flex aspect-square w-6 shrink-0 items-center justify-center rounded-md outline-none hover:cursor-pointer focus-visible:ring-2"
-                            >
-                              <ng-icon hlm name="lucideX" size="sm" />
-                            </button>
+                            @if (workspace.rights.write) {
+                              <button
+                                type="button"
+                                [attr.aria-label]="'Delete ' + (note.title || 'Untitled')"
+                                (click)="deleteNote(note.id)"
+                                class="text-sidebar-foreground/60 ring-sidebar-ring hover:bg-sidebar-accent hover:text-destructive flex aspect-square w-6 shrink-0 items-center justify-center rounded-md outline-none hover:cursor-pointer focus-visible:ring-2"
+                              >
+                                <ng-icon hlm name="lucideX" size="sm" />
+                              </button>
+                            }
                           </li>
                         } @empty {
                           <li hlmSidebarMenuSubItem>
                             <div class="px-2 py-3 text-center text-sm text-muted-foreground">
                               No notes yet
                             </div>
-                          </li>
-                        }
-
-                        @if (isAdmin) {
-                          <li hlmSidebarMenuSubItem>
-                            <div hlmSidebarSeparator class="my-1"></div>
-                          </li>
-                          <li hlmSidebarMenuSubItem>
-                            <button
-                              hlmSidebarMenuSubButton
-                              class="text-muted-foreground"
-                              (click)="copyInviteLink(workspace.id)"
-                            >
-                              <ng-icon hlm name="lucideUserPlus" size="xs" />
-                              <span>Invite to Workspace</span>
-                            </button>
                           </li>
                         }
                       </ul>
@@ -195,7 +190,6 @@ export class AppSidebarComponent {
   private readonly router = inject(Router);
   private readonly workspaceFacade = inject(WorkspaceFacade);
   private readonly noteTabs = inject(NoteTabsService);
-  private readonly inviteService = inject(WorkspaceInviteService);
   private readonly appFacade = inject(AppFacade);
 
   protected readonly notesFacade = inject(NotesFacade);
@@ -206,8 +200,6 @@ export class AppSidebarComponent {
   readonly currentWorkspace = this.workspaceFacade.currentWorkspace;
   readonly currentNote = this.noteTabs.currentNote;
   readonly isLoading = this.appFacade.isLoading;
-
-  readonly isAdmin = true;
 
   isOpen(workspaceId: string) {
     return this.openWorkspaces()[workspaceId] ?? workspaceId === this.currentWorkspace()?.id;
@@ -245,13 +237,19 @@ export class AppSidebarComponent {
     });
   }
 
+  leaveWorkspace(workspace: Workspace) {
+    if (!confirm(`Leave ${workspace.name}? You will need a new invite to come back.`)) return;
+
+    const losesOpenNote = this.currentNote()?.workspaceId === workspace.id;
+
+    this.workspaceFacade.leave(workspace.id).subscribe(() => {
+      this.appFacade.load();
+      if (losesOpenNote) this.router.navigateByUrl(appUrls.workspace);
+    });
+  }
+
   createNote(workspaceId: string) {
     this.setOpen(workspaceId, true);
     this.notesFacade.createAndOpen(workspaceId);
-  }
-
-  copyInviteLink(workspaceId: string) {
-    const link = this.inviteService.generateInviteLink(workspaceId);
-    navigator.clipboard.writeText(link);
   }
 }

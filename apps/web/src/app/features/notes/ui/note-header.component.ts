@@ -13,12 +13,13 @@ import { OnlineUser } from '../domain/presence.model';
           #titleInput
           type="text"
           placeholder="Untitled"
+          [readonly]="readonly()"
           [value]="draftTitle()"
           (input)="draftTitle.set(titleInput.value)"
           (blur)="commitTitle()"
           (keydown.enter)="titleInput.blur()"
           (keydown.escape)="cancelTitle(); titleInput.blur()"
-          class="min-w-0 flex-1 -mx-1 px-1 rounded-sm bg-transparent text-sm font-medium text-foreground outline-none hover:bg-accent focus:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+          class="min-w-0 flex-1 -mx-1 px-1 rounded-sm bg-transparent text-sm font-medium text-foreground outline-none hover:bg-accent focus:bg-accent focus-visible:ring-2 focus-visible:ring-ring read-only:hover:bg-transparent read-only:focus:bg-transparent read-only:focus-visible:ring-0"
         />
         @if (note()) {
           <span class="text-xs text-muted-foreground hidden sm:inline whitespace-nowrap">
@@ -48,6 +49,7 @@ import { OnlineUser } from '../domain/presence.model';
 export class NoteHeaderComponent {
   readonly note = input<Note | null>(null);
   readonly onlineUsers = input<OnlineUser[]>([]);
+  readonly readonly = input(false);
 
   readonly titleChange = output<string>();
 

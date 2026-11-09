@@ -11,7 +11,7 @@ import { Note } from '../domain/note.model';
   providers: [provideIcons({ lucidePlus, lucideFileText, lucideTrash2 })],
   template: `
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      @if (canCreate()) {
+      @if (!readonly()) {
         <button
           (click)="create.emit()"
           class="group relative h-48 rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-accent/50 transition-all duration-200 flex flex-col items-center justify-center gap-3 cursor-pointer"
@@ -58,14 +58,16 @@ import { Note } from '../domain/note.model';
             </div>
           </button>
 
-          <button
-            type="button"
-            [attr.aria-label]="'Delete ' + (note.title || 'Untitled')"
-            (click)="delete.emit(note)"
-            class="absolute top-3 right-3 flex aspect-square w-8 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <ng-icon hlm name="lucideTrash2" size="sm" />
-          </button>
+          @if (!readonly()) {
+            <button
+              type="button"
+              [attr.aria-label]="'Delete ' + (note.title || 'Untitled')"
+              (click)="delete.emit(note)"
+              class="absolute top-3 right-3 flex aspect-square w-8 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <ng-icon hlm name="lucideTrash2" size="sm" />
+            </button>
+          }
         </div>
       }
     </div>
@@ -83,7 +85,7 @@ import { Note } from '../domain/note.model';
 })
 export class NoteGridComponent {
   readonly notes = input.required<Note[]>();
-  readonly canCreate = input(false);
+  readonly readonly = input(false);
 
   readonly open = output<Note>();
   readonly create = output<void>();

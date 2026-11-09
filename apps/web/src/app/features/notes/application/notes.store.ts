@@ -20,7 +20,7 @@ export class NotesStore {
     return this.state().notes.filter((n) => n.workspaceId === workspaceId);
   }
 
-  noteById(id: string | null): Note | null {
+  find(id: string | null): Note | null {
     return id ? (this.state().notes.find((n) => n.id === id) ?? null) : null;
   }
 

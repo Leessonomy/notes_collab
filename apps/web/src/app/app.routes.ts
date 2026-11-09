@@ -35,6 +35,17 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'invite',
+    canActivate: [authGuard],
+    component: AuthLayoutComponent,
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('./pages/invite/invite.routes').then((m) => m.routes),
+      },
+    ],
+  },
   { path: '', redirectTo: 'app', pathMatch: 'full' },
   { path: '**', redirectTo: 'app' },
 ];
